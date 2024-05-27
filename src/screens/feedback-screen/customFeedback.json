@@ -1,0 +1,456 @@
+{
+  "rating": {
+    "0": 
+    {
+      "next": "problem"
+    },
+    "1":
+    {
+      "next": "problem"
+    },
+    "2":
+    {
+      "next": "problem"
+    },
+    "3":
+    {
+      "next": "problem"
+    },
+    "4":
+    {
+      "next": "problem"
+    },
+    "5":
+    {
+      "next": "problem"
+    },
+    "6":
+    {
+      "next": "problem"
+    },
+    "7":
+    {
+      "next": "problem"
+    },
+    "8":
+    {
+      "next": "like"
+    },
+    "9":
+    {
+      "next": "like"
+    },
+    "10":
+    {
+      "next": "like"
+    }
+  },
+  "problem": {
+    "titleLabel":{
+      "id": "app.customFeedback.problem.title"
+    },
+    "progress": "1/2",
+    "options":[
+      {
+        "textLabel":{
+          "id": "app.customFeedback.problem.audio"
+        },
+        "type": "radio",
+        "next": "audioProblem",
+        "key": "feedback.problem",
+        "value": "audio"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.problem.camera"
+        },
+        "type": "radio",
+        "next": "cameraProblem",
+        "key": "feedback.problem",
+        "value": "camera"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.problem.connection"
+        },
+        "type": "radio",
+        "next": "connectionProblem",
+        "key": "feedback.problem",
+        "value": "connection"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.problem.microphone"
+        },
+        "type": "radio",
+        "next": "microphoneProblem",
+        "key": "feedback.problem",
+        "value": "microphone"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.problem.interface"
+        },
+        "type": "radio",
+        "next": "interfaceProblem",
+        "key": "feedback.problem",
+        "value": "interface"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.other"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem",
+        "value": "other"
+      }
+    ]
+  },
+  "audioProblem": {
+    "titleLabel":{
+      "id": "app.customFeedback.audioProblem.title"
+    },
+    "progress": "2/2",
+    "options":[
+      {
+        "textLabel":{
+          "id": "app.customFeedback.audioProblem.soundQuality"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "soundquality"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.audioProblem.hearOthers"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "hearothers"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.audioProblem.audioSync"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "audiosync"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.other"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "other"
+      }
+    ]
+  },
+  "cameraProblem": {
+    "titleLabel":{
+      "id": "app.customFeedback.cameraProblem.title"
+    },
+    "progress": "2/2",
+    "options":[
+      {
+        "textLabel":{
+          "id": "app.customFeedback.cameraProblem.activation"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "activation"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.cameraProblem.seeOthers"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "seeothers"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.cameraProblem.imageQuality"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "imagequality"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.other"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "other"
+      }
+    ]
+  },
+  "connectionProblem": {
+    "titleLabel":{
+      "id": "app.customFeedback.connectionProblem.title"
+    },
+    "progress": "2/2",
+    "options":[
+      {
+        "textLabel":{
+          "id": "app.customFeedback.connectionProblem.instability"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "instability"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.connectionProblem.freeze"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "freeze"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.connectionProblem.data"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "data"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.other"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "other"
+      }
+    ]
+  },
+  "microphoneProblem": {
+    "titleLabel":{
+      "id": "app.customFeedback.microphoneProblem.title"
+    },
+    "progress": "2/2",
+    "options":[
+      {
+        "textLabel":{
+          "id": "app.customFeedback.microphoneProblem.activation"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "activation"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.microphoneProblem.deviceidentification"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "deviceidentification"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.microphoneProblem.echo"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "echo"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.other"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "other"
+      }
+    ]
+  },
+  "interfaceProblem": {
+    "titleLabel":{
+      "id": "app.customFeedback.interfaceProblem.title"
+    },
+    "progress": "2/2",
+    "options":[
+      {
+        "textLabel":{
+          "id": "app.customFeedback.interfaceProblem.loginUi"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "loginUi"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.interfaceProblem.pollUi"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "pollUi"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.interfaceProblem.status"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "status"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.other"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.problem_detailed",
+        "value": "other"
+      }
+    ]
+  },
+  "like": {
+    "titleLabel":{
+      "id": "app.customFeedback.like.title"
+    },
+    "progress": "1/2",
+    "options":[
+      {
+        "textLabel":{
+          "id": "app.customFeedback.like.notificationApp"
+        },
+        "type": "radio",
+        "next": "wish",
+        "key": "feedback.like",
+        "value": "notificationApp"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.like.chatUx"
+        },
+        "type": "radio",
+        "next": "wish",
+        "key": "feedback.like",
+        "value": "chatUx"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.like.appUi"
+        },
+        "type": "radio",
+        "next": "wish",
+        "key": "feedback.like",
+        "value": "appUi"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.other"
+        },
+        "type": "radio",
+        "next": "wish",
+        "key": "feedback.like",
+        "value": "other"
+      }
+    ]
+  },
+  "wish": {
+    "titleLabel":{
+      "id": "app.customFeedback.wish.title"
+    },
+    "progress": "2/2",
+    "options":[
+      {
+        "textLabel":{
+          "id": "app.customFeedback.wish.backCamera"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.wish",
+        "value": "backCamera"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.wish.whiteboardUse"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.wish",
+        "value": "whiteboardUse"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.wish.picture"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.wish",
+        "value": "picture"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.wish.outputDevice"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.wish",
+        "value": "outputDevice"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.wish.privateChat"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.wish",
+        "value": "privateChat"
+      },
+      {
+        "textLabel":{
+          "id": "app.customFeedback.other"
+        },
+        "type": "radio",
+        "next": "email",
+        "key": "feedback.wish",
+        "value": "other"
+      }
+    ]
+  },
+  "email": {
+    "titleLabel":{
+      "id": "app.customFeedback.redirection.thank"
+    },
+    "options":[
+      {
+        "textLabel":{
+          "id": "app.customFeedback.email.contact"
+        },
+        "type": "paragraph"
+      },
+      {
+        "type": "email",
+        "placeholderLabel":{
+          "id": "app.customFeedback.email.placeholder"
+        },
+        "key": "user.email"
+      }
+    ]
+  }
+}

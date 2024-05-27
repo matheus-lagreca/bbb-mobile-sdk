@@ -19,6 +19,8 @@ import SelectLanguageScreen from '../../../screens/select-language-screen';
 import InsideBreakoutRoomScreen from '../../../screens/inside-breakout-room-screen';
 import FullscreenWrapperScreen from '../../../screens/fullscreen-wrapper-screen';
 import RecordingIndicator from '../../record/record-indicator';
+import WhiteboardScreen from '../../../screens/whiteboard-screen';
+import UserNotesScreen from '../../../screens/user-notes-screen';
 // components
 import CustomDrawer from '../index';
 // constants
@@ -235,19 +237,31 @@ const DrawerNavigator = ({
           title: t('app.createBreakoutRoom.title'),
           unmountOnBlur: true,
           drawerIcon: (config) => (
-            <>
-              <Styled.BetaTag>{t('mobileSdk.tag.new')}</Styled.BetaTag>
-              <Styled.DrawerIcon
-                icon="account-group"
-                size={24}
-                iconColor={config.color}
-              />
-            </>
+            <Styled.DrawerIcon
+              icon="account-group"
+              size={24}
+              iconColor={config.color}
+            />
 
           ),
         }}
       />
       )}
+
+      <Drawer.Screen
+        name="UserNotesScreen"
+        component={UserNotesScreen}
+        options={{
+          title: t('app.notes.title'),
+          unmountOnBlur: true,
+          drawerLabelStyle: {
+            maxWidth: 150, fontWeight: '400', fontSize: 16, paddingLeft: 12
+          },
+          drawerIcon: (config) => (
+            <Styled.IconMaterial name="notes" size={24} color={config.color} />
+          ),
+        }}
+      />
 
       {!isBreakout && Settings.showBreakouts && (
       <Drawer.Screen
@@ -264,6 +278,30 @@ const DrawerNavigator = ({
               size={24}
               iconColor={config.color}
             />
+          ),
+        }}
+      />
+      )}
+
+      {Settings.showWhiteboardScreen && (
+      <Drawer.Screen
+        name="WhiteboardScreen"
+        component={WhiteboardScreen}
+        options={{
+          title: t('mobileSdk.whiteboard.label'),
+          drawerLabelStyle: {
+            maxWidth: 150, fontWeight: '400', fontSize: 16, paddingLeft: 12
+          },
+          unmountOnBlur: true,
+          drawerIcon: (config) => (
+            <>
+              <Styled.BetaTag>{t('mobileSdk.tag.new')}</Styled.BetaTag>
+              <Styled.DrawerIcon
+                icon="pen"
+                size={24}
+                iconColor={config.color}
+              />
+            </>
           ),
         }}
       />

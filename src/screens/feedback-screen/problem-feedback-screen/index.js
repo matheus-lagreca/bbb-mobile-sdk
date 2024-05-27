@@ -1,46 +1,52 @@
 import React, { useCallback, useState } from 'react';
-import { BackHandler, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  BackHandler, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard
+} from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { useHeaderHeight } from '@react-navigation/elements';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { useOrientation } from '../../../hooks/use-orientation';
 import logger from '../../../services/logger';
 import Settings from '../../../../settings.json';
 import Colors from '../../../constants/colors';
 import Styled from './styles';
+import customFeedbackData from '../customFeedback.json';
+import Service from '../service';
 
 const POST_ROUTE = Settings.feedback.custom.route;
-const APP_IDENTIFIER = Settings.feedback.custom.appIdentifier;
-const CUSTOMER_METADATA = Settings.feedback.custom.customerMetadata;
 
 const ProblemFeedbackScreen = ({ route }) => {
   const { t } = useTranslation();
-  const height = useHeaderHeight();
-  const orientation = useOrientation();
   const navigation = useNavigation();
 
-  const questionTitle = t('mobileSdk.feedback.questionTitle');
+  let questionTitle;
+  let feedbackOptions;
   const skipButton = t('app.customFeedback.defaultButtons.skip');
-  const problems = [
-    { label: t('app.settings.audioTab.label'), code: 'audio' },
-    { label: t('app.settings.videoTab.label'), code: 'camera' },
-    { label: t('app.customFeedback.problem.connection'), code: 'connection' },
-    { label: t('app.customFeedback.problem.microphone'), code: 'microphone' },
-    { label: t('mobileSdk.whiteboard.label'), code: 'whiteboard' },
-    { label: t('app.customFeedback.other'), code: 'other' },
-  ];
-  const problemDetalied = { text: '' };
-  const initialState = {
-    [problems[0].code]: false,
-    [problems[1].code]: false,
-    [problems[2].code]: false,
-    [problems[3].code]: false,
-    [problems[4].code]: false,
-    [problems[5].code]: false,
-  };
+  const { rating } = route.params.payload;
+  if (rating >= 8) {
+    questionTitle = t('app.customFeedback.like.title');
+
+    feedbackOptions = customFeedbackData.like.options.map((option) => ({
+      label: option.textLabel ? t(option.textLabel.id) : '',
+      code: option.value,
+      next: option.next,
+    }));
+  } else {
+    questionTitle = t('mobileSdk.feedback.questionTitle');
+
+    feedbackOptions = customFeedbackData.problem.options.map((option) => ({
+      label: option.textLabel ? t(option.textLabel.id) : '',
+      code: option.value,
+      next: option.next,
+    }));
+  }
+
+  const initialState = {};
+  feedbackOptions.forEach((option) => {
+    initialState[option.code] = false;
+  });
 
   const [optionsStatus, changeStatus] = useState(initialState);
+  const [stepDetalied, setStepDetalied] = useState('');
 
   // disables android go back button
   useFocusEffect(
@@ -71,14 +77,13 @@ const ProblemFeedbackScreen = ({ route }) => {
     }
   };
 
-  const setMessageText = (text) => {
-    problemDetalied.text = text;
-  };
+  const activateSendProblem = () => {
+    const anyOptionChecked = Service.isAnyOptionChecked(optionsStatus);
+    const otherSelected = optionsStatus['other'];
 
-  const isAnyOptionChecked = () => {
-    return Object.values(optionsStatus).some((value) => {
-      return value;
-    });
+    if (anyOptionChecked && !otherSelected) return true;
+
+    return (otherSelected && stepDetalied.trim().length > 0);
   };
 
   const getProblem = () => {
@@ -87,7 +92,7 @@ const ProblemFeedbackScreen = ({ route }) => {
       if (value === true) {
         answer.problem = key;
         if (key === 'other') {
-          answer.problem_described = problemDetalied.text;
+          answer.problem_described = stepDetalied;
         }
       }
     });
@@ -95,52 +100,66 @@ const ProblemFeedbackScreen = ({ route }) => {
     return answer;
   };
 
-  const buildFeedback = () => {
-    const {
-      rating,
-      userName,
-      userId,
-      userRole,
-      meetingId,
-    } = route.params.payload;
-    const {
-      confname,
-      metadata = {},
-    } = route.params.meetingData;
-
-    const getDeviceType = () => {
-      // https://reactnative.dev/docs/platform
-      if (Platform.OS === 'ios') {
-        return Platform.constants.interfaceIdiom;
+  const getLike = () => {
+    const answer = {};
+    Object.entries(optionsStatus).forEach(([key, value]) => {
+      if (value === true) {
+        answer.like = key;
+        if (key === 'other') {
+          answer.like_described = stepDetalied;
+        }
       }
-      return Platform.constants.uiMode;
+    });
+
+    return answer;
+  };
+
+  const buildStepData = () => {
+    let stepCode;
+    let stepOption;
+    let stepType;
+
+    if (rating < 8) {
+      stepCode = getProblem().problem;
+      stepOption = customFeedbackData.problem.options.find(
+        (option) => option.value === getProblem().problem
+      );
+      stepType = stepOption.next;
+    } else {
+      stepCode = getLike().like;
+      stepOption = customFeedbackData.like.options.find(
+        (option) => option.value === getLike().like
+      );
+      stepType = stepOption.next;
+    }
+
+    const stepData = {
+      stepCode,
+      stepOption,
+      stepType,
     };
 
-    const feedback = {
-      timestamp: new Date().toISOString(),
-      rating,
-      session: {
-        session_name: confname,
-        institution_name: metadata[CUSTOMER_METADATA.name],
-        institution_guid: metadata[CUSTOMER_METADATA.guid],
-        session_id: meetingId,
-      },
-      device: {
-        type: getDeviceType(),
-        os: Platform.OS,
-        browser: APP_IDENTIFIER,
-      },
-      user: {
-        name: userName,
-        id: userId,
-        role: userRole,
-      },
+    return stepData;
+  };
+
+  const buildFeedback = () => {
+    const payload = { ...route.params.payload };
+    let feedbackData;
+
+    if (payload.rating < 8) {
+      feedbackData = getProblem();
+    } else {
+      feedbackData = getLike();
+    }
+
+    const newFeedback = {
+      ...payload,
       feedback: {
-        ...getProblem()
+        ...feedbackData,
       },
     };
 
-    return feedback;
+    return { ...payload, ...newFeedback };
   };
 
   const sendFeedback = () => {
@@ -159,12 +178,16 @@ const ProblemFeedbackScreen = ({ route }) => {
   };
 
   const handleSendProblem = () => {
-    if (isAnyOptionChecked()) {
+    if (activateSendProblem()) {
       const { host } = route.params.meetingData;
-      // There is one feedback screen left. Just aggregate the
-      // information that we have and send it to the next screen
       const payload = buildFeedback();
-      navigation.navigate('EmailFeedbackScreen', { payload, host });
+      const stepData = buildStepData();
+      sendFeedback();
+      if (stepData.stepType === 'email') {
+        navigation.navigate('EmailFeedbackScreen', { payload, host });
+      } else {
+        navigation.navigate('SpecificProblemFeedbackScreen', { payload, host, stepData });
+      }
     }
   };
 
@@ -175,62 +198,59 @@ const ProblemFeedbackScreen = ({ route }) => {
   };
 
   return (
-    <Styled.ContainerView orientation={orientation}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={height + 47}
-        enabled
-      >
-        <Styled.ContainerFeedbackCard
-          contentContainerStyle={Styled.ContentContainerStyle}
-          orientation={orientation}
-        >
-          <Styled.ContainerTitle>
-            <Styled.Title>{questionTitle}</Styled.Title>
-            <Styled.Progress>1/2</Styled.Progress>
-          </Styled.ContainerTitle>
-          <Styled.OptionsContainer>
-            {
-            problems.map((option) => {
-              return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <Styled.ContainerView>
+        <Styled.Title>{questionTitle}</Styled.Title>
+        <Styled.OptionsContainer>
+          {
+          feedbackOptions.map((option) => {
+            return (
+              <Styled.CheckContainerItem key={option.code}>
                 <Styled.Option
-                  key={option.code}
                   status={optionsStatus[option.code] ? 'checked' : 'unchecked'}
-                  label={option.label}
-                  position="leading"
-                  color={Colors.blue}
+                  color={Colors.white}
                   onPress={() => flipOption(option.code)}
                 />
-              );
-            })
+                <Styled.LabelOption>{option.label}</Styled.LabelOption>
+              </Styled.CheckContainerItem>
+            );
+          })
           }
-            <Styled.TextInputContainer>
-              <Styled.TextInput
-                onFocus={() => checkOption('other')}
-                multiline
-                onChangeText={(newText) => setMessageText(newText)}
-              />
-            </Styled.TextInputContainer>
-          </Styled.OptionsContainer>
-          <Styled.ButtonContainer>
-            <Styled.ConfirmButton
-              disabled={!isAnyOptionChecked()}
-              onPress={handleSendProblem}
-            >
-              {t('app.customFeedback.defaultButtons.next')}
-            </Styled.ConfirmButton>
-          </Styled.ButtonContainer>
-          <Styled.QuitSessionButtonContainer>
-            <Styled.QuitSessionButton
-              onPress={handleSkip}
-            >
-              {skipButton}
-            </Styled.QuitSessionButton>
-          </Styled.QuitSessionButtonContainer>
-        </Styled.ContainerFeedbackCard>
-      </KeyboardAvoidingView>
-    </Styled.ContainerView>
+        </Styled.OptionsContainer>
+
+        <KeyboardAvoidingView
+          style={{ width: '100%' }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <Styled.TextInputOther
+            onFocus={() => checkOption('other')}
+            multiline
+            value={stepDetalied}
+            onChangeText={(newText) => {
+              setStepDetalied(newText);
+            }}
+          />
+        </KeyboardAvoidingView>
+
+        <Styled.ButtonContainer>
+          <Styled.ConfirmButton
+            disabled={!activateSendProblem()}
+            onPress={handleSendProblem}
+          >
+            {t('app.customFeedback.defaultButtons.next')}
+          </Styled.ConfirmButton>
+        </Styled.ButtonContainer>
+
+        <Styled.QuitSessionButtonContainer>
+          <Styled.QuitSessionButton
+            onPress={handleSkip}
+          >
+            {skipButton}
+          </Styled.QuitSessionButton>
+        </Styled.QuitSessionButtonContainer>
+      </Styled.ContainerView>
+
+    </TouchableWithoutFeedback>
   );
 };
 
