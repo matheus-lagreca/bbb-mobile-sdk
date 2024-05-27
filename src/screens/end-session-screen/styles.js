@@ -1,11 +1,13 @@
 import styled from 'styled-components/native';
 import LottieView from 'lottie-react-native';
 import Colors from '../../constants/colors';
+import PrimaryButton from '../../components/button';
 
 const ContainerView = styled.View`
   width: 100%;
   height: 100%;
   display: flex;
+  align-items: center;
   justify-content: center;
   padding: 10px;
 
@@ -24,8 +26,6 @@ const ContainerEndSessionCard = styled.View`
   border-radius: 12px;
   display: flex;
   align-items: center;
-  padding: 16px;
-  gap: 24px;
 `;
 
 const MiddleContainer = styled.View`
@@ -49,24 +49,15 @@ const Image = styled(LottieView)`
   `}
 `;
 
-const ConfirmButton = ({
-  onPress, children
-}) => {
-  return (
-    <ButtonCreate
-      mode="contained"
-      onPress={onPress}
-      buttonColor={Colors.orange}
-      textColor={Colors.white}
-      labelStyle={{
-        fontSize: 18,
-        fontWeight: 500,
-      }}
-    >
-      {children}
-    </ButtonCreate>
-  );
-};
+const ConfirmButton = styled(PrimaryButton)`
+  background-color: ${Colors.orange};
+  color: ${Colors.white};
+  font-size: 18px;
+  height: 40px;
+  font-weight: 500;
+  padding: 8px 24px;
+  border-radius: 40px;
+`;
 
 const Subtitle = styled.Text`
   font-size: 16px;
@@ -78,6 +69,7 @@ const Subtitle = styled.Text`
 export default {
   ConfirmButton,
   ContainerView,
+  ContainerEndSessionCard,
   Title,
   Subtitle,
   MiddleContainer,
