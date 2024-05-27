@@ -38,10 +38,10 @@ const InCallManagerController = () => {
 
   useEffect(() => {
     if (audioIsConnected) {
-      // // InCallManager.start({ media: 'video' });
+      InCallManager.start({ media: 'video' });
       return;
     }
-    // //InCallManager.stop({ media: 'video' });
+    InCallManager.stop({ media: 'video' });
   }, [audioIsConnected]);
 
   return null;
