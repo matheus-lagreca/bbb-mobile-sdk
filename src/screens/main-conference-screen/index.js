@@ -6,6 +6,8 @@ import VideoGrid from '../../components/video/video-grid';
 import BreakoutRoomTimer from '../../components/breakout-room-timer';
 import Styled from './styles';
 import MiniAudioPlayerIcon from '../../components/audio-player/mini-audio-player-icon';
+import TalkingIndicator from '../../components/talking-indicator';
+import Styled from './styles';
 
 const MainConferenceScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +27,7 @@ const MainConferenceScreen = () => {
     return (
       <ScreenWrapper>
         <Styled.ContainerView>
+          <TalkingIndicator />
           <VideoGrid />
           <BreakoutRoomTimer />
         </Styled.ContainerView>

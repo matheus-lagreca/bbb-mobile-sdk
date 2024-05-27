@@ -1,19 +1,21 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { Share } from 'react-native';
+import { Share, Platform } from 'react-native';
 import {
   DrawerContentScrollView,
   DrawerItemList,
   DrawerItem,
 } from '@react-navigation/drawer';
 import Colors from '../../constants/colors';
+import { useOrientation } from '../../hooks/use-orientation';
+import { setExpandActionsBar } from '../../store/redux/slices/wide-app/layout';
 import { selectCurrentUser } from '../../store/redux/slices/current-user';
 import { setProfile } from '../../store/redux/slices/wide-app/modal';
-import Styled from './styles';
 import logger from '../../services/api';
 import * as api from '../../services/api';
 import { leave } from '../../store/redux/slices/wide-app/client';
 import Settings from '../../../settings.json';
+import Styled from './styles';
 
 const CustomDrawer = (props) => {
   const { meetingUrl, navigation } = props;
@@ -21,6 +23,8 @@ const CustomDrawer = (props) => {
   const { t } = useTranslation();
   const currentUserObj = useSelector(selectCurrentUser);
   const isBreakout = useSelector((state) => state.client.meetingData.isBreakout);
+  const isAndroid = Platform.OS === 'android';
+  const isLandscape = useOrientation() === 'LANDSCAPE';
 
   const leaveSession = () => {
     dispatch(leave(api));
@@ -28,6 +32,11 @@ const CustomDrawer = (props) => {
 
   const onClickFeatureNotImplemented = () => {
     dispatch(setProfile({ profile: 'not_implemented' }));
+    navigation.closeDrawer();
+  };
+
+  const onClickAudioSelector = () => {
+    dispatch(setExpandActionsBar(true));
     navigation.closeDrawer();
   };
 
@@ -53,6 +62,37 @@ const CustomDrawer = (props) => {
     }
   };
 
+  const renderBottomDrawerItems = () => (
+    <>
+      <DrawerItem
+        label={t('mobileSdk.audio.deviceSelector.title')}
+        labelStyle={Styled.TextButtonLabel}
+        onPress={onClickAudioSelector}
+        inactiveTintColor={Colors.lightGray400}
+        inactiveBackgroundColor={Colors.lightGray100}
+        icon={() => <Styled.DrawerIcon name="bluetooth-audio" size={24} color="#1C1B1F" />}
+      />
+      {!isBreakout && meetingUrl && (
+        <DrawerItem
+          label={t('mobileSdk.drawer.shareButtonLabel')}
+          labelStyle={Styled.TextButtonLabel}
+          onPress={onClickShare}
+          inactiveTintColor={Colors.lightGray400}
+          inactiveBackgroundColor={Colors.lightGray100}
+          icon={() => <Styled.DrawerIcon name="share" size={24} color="#1C1B1F" />}
+        />
+      )}
+      <DrawerItem
+        label={isBreakout ? t('mobileSdk.breakout.leave') : t('app.navBar.settingsDropdown.leaveSessionLabel')}
+        labelStyle={Styled.TextButtonLabel}
+        onPress={leaveSession}
+        inactiveTintColor={Colors.lightGray400}
+        inactiveBackgroundColor={Colors.lightGray100}
+        icon={() => <Styled.DrawerIcon name="logout" size={24} color="#1C1B1F" />}
+      />
+    </>
+  );
+
   const renderNotImplementedItem = () => (
     <>
       <DrawerItem
@@ -64,17 +104,6 @@ const CustomDrawer = (props) => {
         inactiveBackgroundColor={Colors.lightGray100}
         icon={() => (
           <Styled.DrawerIcon name="brush" size={24} color="#1C1B1F" />
-        )}
-      />
-      <DrawerItem
-        label={t('app.notes.title')}
-        labelStyle={Styled.TextButtonLabel}
-        style={{ opacity: 0.3 }}
-        onPress={onClickFeatureNotImplemented}
-        inactiveTintColor={Colors.lightGray400}
-        inactiveBackgroundColor={Colors.lightGray100}
-        icon={() => (
-          <Styled.DrawerIcon name="notes" size={24} color="#1C1B1F" />
         )}
       />
       <DrawerItem
@@ -110,29 +139,11 @@ const CustomDrawer = (props) => {
         <Styled.ContainerDrawerItemList>
           <DrawerItemList {...props} />
           {Settings.showNotImplementedFeatures && renderNotImplementedItem()}
+          {isLandscape && renderBottomDrawerItems()}
         </Styled.ContainerDrawerItemList>
       </DrawerContentScrollView>
       <Styled.ContainerCustomBottomButtons>
-
-        {/* DEFAULT ITEMS */}
-        {!isBreakout && meetingUrl && (
-        <DrawerItem
-          label={t('mobileSdk.drawer.shareButtonLabel')}
-          labelStyle={Styled.TextButtonLabel}
-          onPress={onClickShare}
-          inactiveTintColor={Colors.lightGray400}
-          inactiveBackgroundColor={Colors.lightGray100}
-          icon={() => <Styled.DrawerIcon name="share" size={24} color="#1C1B1F" />}
-        />
-        )}
-        <DrawerItem
-          label={isBreakout ? t('mobileSdk.breakout.leave') : t('app.navBar.settingsDropdown.leaveSessionLabel')}
-          labelStyle={Styled.TextButtonLabel}
-          onPress={leaveSession}
-          inactiveTintColor={Colors.lightGray400}
-          inactiveBackgroundColor={Colors.lightGray100}
-          icon={() => <Styled.DrawerIcon name="logout" size={24} color="#1C1B1F" />}
-        />
+        {!isLandscape && renderBottomDrawerItems()}
       </Styled.ContainerCustomBottomButtons>
     </Styled.ViewContainer>
   );
