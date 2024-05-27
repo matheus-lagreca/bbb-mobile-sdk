@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import ScreenWrapper from '../../components/screen-wrapper';
 import VideoGrid from '../../components/video/video-grid';
 import BreakoutRoomTimer from '../../components/breakout-room-timer';
-import Styled from './styles';
 import MiniAudioPlayerIcon from '../../components/audio-player/mini-audio-player-icon';
 import TalkingIndicator from '../../components/talking-indicator';
 import Styled from './styles';

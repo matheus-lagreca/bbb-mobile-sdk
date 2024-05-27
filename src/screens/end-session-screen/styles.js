@@ -49,16 +49,6 @@ const Image = styled(LottieView)`
   `}
 `;
 
-const ConfirmButton = styled(PrimaryButton)`
-  background-color: ${Colors.orange};
-  color: ${Colors.white};
-  font-size: 18px;
-  height: 40px;
-  font-weight: 500;
-  padding: 8px 24px;
-  border-radius: 40px;
-`;
-
 const ConfirmButton = ({
   onPress, children
 }) => {
