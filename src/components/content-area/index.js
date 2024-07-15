@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { Alert, NativeModules, Platform } from 'react-native';
 import { selectScreenshare } from '../../store/redux/slices/screenshare';
 import WhiteboardScreen from '../../screens/whiteboard-screen';
-import { isPresenter } from '../../store/redux/slices/current-user';
 import {
   setDetailedInfo,
   setFocusedElement,
@@ -27,7 +26,6 @@ const ContentArea = (props) => {
   const screenshare = useSelector(selectScreenshare);
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const amIPresenter = useSelector(isPresenter);
   const { t } = useTranslation();
 
   const isAndroid = Platform.OS === 'android';
@@ -79,12 +77,6 @@ const ContentArea = (props) => {
 
   // ** Content area views methods **
   const presentationView = () => {
-    if (!amIPresenter && !isPiPEnabled) {
-      return (
-        <WhiteboardScreen />
-      );
-    }
-
     return (
       <Styled.Presentation
         width="100%"
