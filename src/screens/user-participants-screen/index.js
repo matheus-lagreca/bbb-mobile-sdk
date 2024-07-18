@@ -1,27 +1,26 @@
+import { useMutation, useSubscription } from '@apollo/client';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Menu, Provider } from 'react-native-paper';
+import { ActivityIndicator, Menu, Provider } from 'react-native-paper';
 import { useOrientation } from '../../hooks/use-orientation';
 import ScreenWrapper from '../../components/screen-wrapper';
 import { selectWaitingUsers } from '../../store/redux/slices/guest-users';
-import { selectMainUsers } from '../../store/redux/slices/users';
-import { isModerator, selectCurrentUserId } from '../../store/redux/slices/current-user';
 import { isBreakout } from '../../store/redux/slices/wide-app/client';
-import UserParticipantsService from './service';
 import Colors from '../../constants/colors';
-import UtilsFunctions from '../../utils/functions'
 import Styled from './styles';
+import {
+  USER_LIST_SUBSCRIPTION,
+  CURRENT_USER_SUBSCRIPTION,
+  SET_ROLE,
+  SET_PRESENTER
+} from './queries';
 
 const UserParticipantsScreen = () => {
-  const amIModerator = useSelector(isModerator);
-  const mainUsers = useSelector(selectMainUsers, UtilsFunctions.arraysEqual);
-  const myUserId = useSelector(selectCurrentUserId);
   const pendingUsers = useSelector(selectWaitingUsers);
-
   const [showMenu, setShowMenu] = useState(false);
   const [selectedUser, setSelectedUser] = useState({});
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 });
@@ -31,19 +30,42 @@ const UserParticipantsScreen = () => {
   const orientation = useOrientation();
   const navigation = useNavigation();
 
-  const handleUsersName = useCallback(
-    () => mainUsers.map((user) => {
-      return {
-        name: user.name,
-        role: user.role,
-        color: user.color,
-        userId: user.intId,
-        presenter: user.presenter,
-        // ...other properties
-      };
-    }),
-    [mainUsers]
-  );
+  const { data: userList } = useSubscription(USER_LIST_SUBSCRIPTION);
+  const { data: currentUser } = useSubscription(CURRENT_USER_SUBSCRIPTION);
+  const [dispatchSetRole] = useMutation(SET_ROLE);
+  const [dispatchSetPresenter] = useMutation(SET_PRESENTER);
+
+  const handleDispatchSetPresenter = (userId) => {
+    dispatchSetPresenter({
+      variables: {
+        userId
+      }
+    })
+  };
+
+  const handleDispatchSetRole = (userId, role) => {
+    role = (role === "VIEWER") ? "MODERATOR" : "VIEWER";
+
+    dispatchSetRole({
+      variables: {
+        userId,
+        role,
+      }
+    })
+  };
+
+  const handleUsersName = useCallback(() => {
+    if (!userList) return [];
+
+    // console.log(JSON.stringify(userList, null, 2))
+    return userList.user.map((user) => ({
+      name: user.name,
+      role: user.role,
+      color: user.color,
+      userId: user.userId,
+      presenter: user.presenter,
+    }));
+  }, [userList]);
 
   const onIconPress = (event, item) => {
     const { nativeEvent } = event;
@@ -58,7 +80,7 @@ const UserParticipantsScreen = () => {
   };
 
   const renderItem = ({ item }) => {
-    const isMe = myUserId === item.userId;
+    const isMe = currentUser?.user_current[0]?.userId === item.userId;
 
     return (
       <Styled.CardPressable onPress={(e) => onIconPress(e, item, isMe)} isMe={isMe}>
@@ -112,7 +134,7 @@ const UserParticipantsScreen = () => {
   const renderMenuView = () => {
     const isViewer = selectedUser.role === 'VIEWER';
     const isPresenter = selectedUser.presenter;
-    const isMe = myUserId === selectedUser.userId;
+    const isMe = currentUser?.user_current[0]?.userId === selectedUser.userId;
 
     return (
       <Menu
@@ -120,57 +142,65 @@ const UserParticipantsScreen = () => {
         onDismiss={() => setShowMenu(false)}
         anchor={menuAnchor}
       >
-        {amIModerator && (
-        <>
-          {isMe && !isPresenter && (
-            <Menu.Item
-              onPress={() => {
-                UserParticipantsService.makePresenter(selectedUser.userId);
-                setShowMenu(false);
-              }}
-              title={t('app.userList.menu.makePresenter.label')}
-            />
-          )}
-
-          {!isMe && (
-            <>
+        {currentUser?.user_current[0]?.isModerator && (
+          <>
+            {isMe && !isPresenter && (
               <Menu.Item
                 onPress={() => {
-                  UserParticipantsService.handleChangeRole(
-                    selectedUser.userId,
-                    selectedUser.role
-                  );
+                  handleDispatchSetPresenter(selectedUser.userId)
                   setShowMenu(false);
                 }}
-                title={
-                  isViewer
-                    ? t('app.userList.menu.promoteUser.label')
-                    : t('app.userList.menu.demoteUser.label')
-                }
+                title={t('app.userList.menu.makePresenter.label')}
               />
-              {!isPresenter && (
+            )}
+
+            {!isMe && (
+              <>
                 <Menu.Item
                   onPress={() => {
-                    UserParticipantsService.makePresenter(selectedUser.userId);
+                    handleDispatchSetRole(
+                      selectedUser.userId,
+                      selectedUser.role
+                    );
                     setShowMenu(false);
                   }}
-                  title={t('app.userList.menu.makePresenter.label')}
+                  title={
+                    isViewer
+                      ? t('app.userList.menu.promoteUser.label')
+                      : t('app.userList.menu.demoteUser.label')
+                  }
                 />
-              )}
-            </>
-          )}
-        </>
+                {!isPresenter && (
+                  <Menu.Item
+                    onPress={() => {
+                      handleDispatchSetPresenter(selectedUser.userId)
+                      setShowMenu(false);
+                    }}
+                    title={t('app.userList.menu.makePresenter.label')}
+                  />
+                )}
+              </>
+            )}
+          </>
         )}
       </Menu>
     );
   };
+
+  if(!currentUser) {
+    return (
+      <Styled.LoadingWrapper>
+        <ActivityIndicator size={50}/>
+      </Styled.LoadingWrapper>
+    )
+  }
 
   return (
     <ScreenWrapper>
       <Provider>
         <Styled.ContainerView orientation={orientation}>
           <Styled.Block orientation={orientation}>
-            {amIModerator && !meetingIsBreakout && renderGuestPolicy()}
+            {currentUser?.isModerator && !meetingIsBreakout && renderGuestPolicy()}
             <Styled.FlatList data={handleUsersName()} renderItem={renderItem} />
             {renderMenuView()}
           </Styled.Block>

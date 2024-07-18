@@ -17,8 +17,8 @@ const UserParticipantsNavigator = () => {
       }}
     >
       <Stack.Screen name="UserParticipantsInitialScreen" component={UserParticipantsScreen} />
-      <Stack.Screen name="GuestPolicyScreen" component={GuestPolicyScreen} />
-      <Stack.Screen name="WaitingUsersScreen" component={WaitingUsersScreen} />
+      {/* <Stack.Screen name="GuestPolicyScreen" component={GuestPolicyScreen} /> */}
+      {/* <Stack.Screen name="WaitingUsersScreen" component={WaitingUsersScreen} /> */}
     </Stack.Navigator>
   );
 };
