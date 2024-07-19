@@ -3,7 +3,7 @@ import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
-import { useCallback, useState, useEffect } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { ActivityIndicator, Menu, Provider } from 'react-native-paper';
 import { useOrientation } from '../../hooks/use-orientation';
@@ -12,15 +12,15 @@ import { selectWaitingUsers } from '../../store/redux/slices/guest-users';
 import { isBreakout } from '../../store/redux/slices/wide-app/client';
 import Colors from '../../constants/colors';
 import Styled from './styles';
+import useGuestWaitingList from '../../graphql/hooks/useGuestWaitingList'
+import useCurrentUser from '../../graphql/hooks/useCurrentUser'
 import {
   USER_LIST_SUBSCRIPTION,
-  CURRENT_USER_SUBSCRIPTION,
   SET_ROLE,
   SET_PRESENTER
 } from './queries';
 
 const UserParticipantsScreen = () => {
-  const pendingUsers = useSelector(selectWaitingUsers);
   const [showMenu, setShowMenu] = useState(false);
   const [selectedUser, setSelectedUser] = useState({});
   const [menuAnchor, setMenuAnchor] = useState({ x: 0, y: 0 });
@@ -31,7 +31,10 @@ const UserParticipantsScreen = () => {
   const navigation = useNavigation();
 
   const { data: userList } = useSubscription(USER_LIST_SUBSCRIPTION);
-  const { data: currentUser } = useSubscription(CURRENT_USER_SUBSCRIPTION);
+  const { data: currentUserData } = useCurrentUser();
+  const { data: pendingUsersData } = useGuestWaitingList();
+  const currentUser = currentUserData?.user_current[0];
+  const pendingUsers = pendingUsersData?.user_guest;
   const [dispatchSetRole] = useMutation(SET_ROLE);
   const [dispatchSetPresenter] = useMutation(SET_PRESENTER);
 
@@ -57,7 +60,6 @@ const UserParticipantsScreen = () => {
   const handleUsersName = useCallback(() => {
     if (!userList) return [];
 
-    // console.log(JSON.stringify(userList, null, 2))
     return userList.user.map((user) => ({
       name: user.name,
       role: user.role,
@@ -80,7 +82,7 @@ const UserParticipantsScreen = () => {
   };
 
   const renderItem = ({ item }) => {
-    const isMe = currentUser?.user_current[0]?.userId === item.userId;
+    const isMe = currentUser?.userId === item.userId;
 
     return (
       <Styled.CardPressable onPress={(e) => onIconPress(e, item, isMe)} isMe={isMe}>
@@ -111,7 +113,7 @@ const UserParticipantsScreen = () => {
           />
         </Styled.GuestMenuContainer>
       </Pressable>
-      {pendingUsers.length > 0 && (
+      {pendingUsers?.length > 0 && (
         <Pressable
           onPress={() => {
             navigation.navigate('WaitingUsersScreen');
@@ -134,7 +136,7 @@ const UserParticipantsScreen = () => {
   const renderMenuView = () => {
     const isViewer = selectedUser.role === 'VIEWER';
     const isPresenter = selectedUser.presenter;
-    const isMe = currentUser?.user_current[0]?.userId === selectedUser.userId;
+    const isMe = currentUser?.userId === selectedUser.userId;
 
     return (
       <Menu
@@ -142,7 +144,7 @@ const UserParticipantsScreen = () => {
         onDismiss={() => setShowMenu(false)}
         anchor={menuAnchor}
       >
-        {currentUser?.user_current[0]?.isModerator && (
+        {currentUser?.isModerator && (
           <>
             {isMe && !isPresenter && (
               <Menu.Item

@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import Queries from './queries';
-import useCurrentUser from '../user-participants-screen/useCurrentUser';
+import useCurrentUser from '../../graphql/hooks/useCurrentUser';
 
 const UserJoinScreen = () => {
   const navigation = useNavigation();

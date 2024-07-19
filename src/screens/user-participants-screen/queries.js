@@ -17,17 +17,6 @@ subscription{
   }
 }`;
 
-const CURRENT_USER_SUBSCRIPTION = gql`
-subscription{
-  user_current {
-    userId
-    isModerator
-    guest
-    presenter
-    locked
-  }
-}`;
-
 const SET_ROLE = gql`
 mutation UserSetRole($userId: String!, $role: String!) {
   userSetRole(
@@ -43,4 +32,4 @@ mutation SetPresenter($userId: String!) {
 }
 `;
 
-export { USER_LIST_SUBSCRIPTION, CURRENT_USER_SUBSCRIPTION, SET_ROLE, SET_PRESENTER }
+export { USER_LIST_SUBSCRIPTION, SET_ROLE, SET_PRESENTER }

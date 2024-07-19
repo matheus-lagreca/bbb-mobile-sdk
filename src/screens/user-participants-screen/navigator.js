@@ -3,7 +3,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import UserParticipantsScreen from './index';
 import GuestPolicyScreen from './guest-policy/index';
 import WaitingUsersScreen from './waiting-users/index';
-import TestComp from './test/index';
 
 const UserParticipantsNavigator = () => {
   const Stack = createStackNavigator();
@@ -17,10 +16,9 @@ const UserParticipantsNavigator = () => {
         animationEnabled: false
       }}
     >
-      <Stack.Screen name="TestComp" component={TestComp} />
-      {/* <Stack.Screen name="UserParticipantsInitialScreen" component={UserParticipantsScreen} /> */}
-      {/* <Stack.Screen name="GuestPolicyScreen" component={GuestPolicyScreen} /> */}
-      {/* <Stack.Screen name="WaitingUsersScreen" component={WaitingUsersScreen} /> */}
+      <Stack.Screen name="UserParticipantsInitialScreen" component={UserParticipantsScreen} />
+      <Stack.Screen name="GuestPolicyScreen" component={GuestPolicyScreen} />
+      <Stack.Screen name="WaitingUsersScreen" component={WaitingUsersScreen} />
     </Stack.Navigator>
   );
 };
