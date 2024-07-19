@@ -67,8 +67,8 @@ We welcome contributions from the community. To contribute to the BigBlueButton 
 2.  Create a new branch for your feature or bug fix.
 3.  Make your changes and submit a pull request.
 
-Please read our [contribution guidelines](https://github.com/mconf/bbb-mobile-sdk/blob/main/CONTRIBUTING.md) for more details.
+Please read our [contribution guidelines](CONTRIBUTING.md) for more details.
 
 ## License
 
-**bbb-mobile-sdk** is released under the [MIT License](https://github.com/mconf/bbb-mobile-sdk/blob/dev/LICENSE.md).
+**bbb-mobile-sdk** is released under the [MIT License](LICENSE.md).
