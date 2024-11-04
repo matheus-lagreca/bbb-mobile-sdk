@@ -5,7 +5,7 @@ buildscript {
         buildToolsVersion = '33.0.0'
         minSdkVersion = '24'
         compileSdkVersion = 33
-        targetSdkVersion = 34
+        targetSdkVersion = 33
         if (findProperty('android.kotlinVersion')) {
             kotlinVersion = findProperty('android.kotlinVersion')
         }
