@@ -1,4 +1,4 @@
-package org.bbb.mobilesdk;
+package org.bbb.mobilesdk
 
 import android.app.Application
 import android.content.res.Configuration
