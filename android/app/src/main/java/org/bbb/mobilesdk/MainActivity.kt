@@ -1,4 +1,4 @@
-package org.bbb.mobilesdk;
+package org.bbb.mobilesdk
 
 import android.os.Build
 import android.os.Bundle
