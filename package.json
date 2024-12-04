@@ -1,6 +1,6 @@
 {
   "name": "bbbmobile",
-  "version": "0.12.5",
+  "version": "0.14.3",
   "private": true,
   "description": "BigBlueButton mobile sdk",
   "main": "index.js",
@@ -57,7 +57,7 @@
     "react-dom": "18.2.0",
     "react-i18next": "^12.1.5",
     "react-native": "0.74.5",
-    "react-native-callkeep": "4.3.14",
+    "react-native-callkeep": "^4.3.14",
     "react-native-gesture-handler": "~2.16.1",
     "react-native-htmlview": "^0.17.0",
     "react-native-incall-manager": "^4.2.0",
@@ -73,6 +73,7 @@
     "react-native-webview": "13.8.6",
     "react-redux": "^8.0.2",
     "reconnecting-websocket": "^4.4.0",
+    "rn-android-keyboard-adjust": "^2.1.2",
     "styled-components": "^5.3.5",
     "url": "^0.11.0",
     "util": "^0.12.4"

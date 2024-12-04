@@ -45,7 +45,6 @@
         "android.permission.BLUETOOTH_ADMIN",
         "android.permission.BLUETOOTH_CONNECT"
       ],
-      "usesCleartextTraffic": true,
       "package": "org.bbb.mobilesdk"
     },
     "plugins": ["@config-plugins/react-native-webrtc"],
@@ -59,3 +58,4 @@
     }
   }
 }
+
