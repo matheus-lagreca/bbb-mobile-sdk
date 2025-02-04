@@ -28,8 +28,8 @@ const DrawerNavigator = ({
   const { t } = useTranslation();
   const { data: userCurrentData } = useCurrentUser();
   const meetingName = userCurrentData?.meeting?.name;
-  const recordMeeting = false;
-  const isBreakout = false;
+  const recordMeeting = false; // get the data from the meeting
+  const isBreakout = true; // get the data from the meeting
 
   useModalListener();
 
