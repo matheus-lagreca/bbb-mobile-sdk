@@ -17,8 +17,8 @@ import CustomDrawer from '../index';
 import useModalListener from '../../../hooks/listeners/use-modal-listener';
 // constants
 import Styled from './styles';
-import useCurrentUser from '../../../graphql/hooks/useCurrentUser';
 import NotificationController from '../../../app-content/notification';
+import useMeeting from '../../../graphql/hooks/useMeeting';
 
 const DrawerNavigator = ({
   onLeaveSession, jUrl, meetingUrl
@@ -26,10 +26,10 @@ const DrawerNavigator = ({
   const Drawer = createDrawerNavigator();
   const appState = useAppState();
   const { t } = useTranslation();
-  const { data: userCurrentData } = useCurrentUser();
-  const meetingName = userCurrentData?.meeting?.name;
+  const { data: meetingData } = useMeeting();
+  const meetingName = meetingData?.meeting[0]?.name;
   const recordMeeting = false; // get the data from the meeting
-  const isBreakout = true; // get the data from the meeting
+  const isBreakout = meetingData?.meeting[0]?.isBreakout;
 
   useModalListener();
 

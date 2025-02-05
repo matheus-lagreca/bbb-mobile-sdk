@@ -25,7 +25,7 @@
     }
   },
   "feedback": {
-    "enabled": true,
+    "enabled": false,
     "route": "/html5client/feedback",
     "minimumScore": 1,
     "maximumScore": 10,

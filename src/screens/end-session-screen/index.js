@@ -20,11 +20,11 @@ const EndSessionScreen = (props) => {
         resizeMode="contain"
         orientation={orientation}
       />
-      <Styled.Title>{t('app.customFeedback.email.thank')}</Styled.Title>
-      <Styled.Subtitle>{t('mobileSdk.endSession.subtitle')}</Styled.Subtitle>
+      <Styled.Title>{t('mobileSdk.breakout.endSession.modal.title')}</Styled.Title>
+      <Styled.Subtitle>{t('mobileSdk.breakout.endSession.modal.subtitle')}</Styled.Subtitle>
       <Styled.ButtonContainer>
         <Styled.ConfirmButton onPress={handleLeaveSessionButtonPress}>
-          {t('app.leaveModal.confirm')}
+          {t('mobileSdk.breakout.endSession.modal.buttonLabel')}
         </Styled.ConfirmButton>
       </Styled.ButtonContainer>
     </Styled.ContainerView>
