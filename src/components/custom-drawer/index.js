@@ -12,20 +12,26 @@ import Settings from '../../../settings.json';
 import Queries from './queries';
 import Styled from './styles';
 import BBBLiveKitRoom from '../livekit';
+import useMeeting from '../../graphql/hooks/useMeeting';
 
 const CustomDrawer = (props) => {
   const { meetingUrl, navigation } = props;
   const dispatch = useDispatch();
   const { data } = useCurrentUser();
+  const { data: meetingData } = useMeeting();
   const [dispatchLeaveSession] = useMutation(Queries.USER_LEAVE_MEETING);
   const { t } = useTranslation();
 
   const currentUser = data?.user_current[0];
-  const isBreakoutRoom = currentUser?.meeting?.isBreakout;
+  const isBreakoutRoom = meetingData?.meeting[0]?.isBreakout;
   const isLandscape = useOrientation() === 'LANDSCAPE';
 
   const leaveSession = () => {
-    dispatchLeaveSession();
+    if (isBreakoutRoom) {
+      navigation.navigate('EndSessionScreen');
+    } else {
+      dispatchLeaveSession();
+    };
   };
 
   const onClickFeatureNotImplemented = () => {

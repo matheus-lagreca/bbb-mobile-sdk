@@ -14,6 +14,7 @@ const MEETING_SUBSCRIPTION = gql`
           value
         }
         name
+        isBreakout
         cameraBridge
         screenShareBridge
         audioBridge
