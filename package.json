@@ -1,6 +1,6 @@
 {
   "name": "bbbmobile",
-  "version": "0.15.3",
+  "version": "0.16.2",
   "private": true,
   "description": "BigBlueButton mobile sdk",
   "main": "index.js",
@@ -41,15 +41,16 @@
     "@react-navigation/stack": "^6.3.4",
     "@reduxjs/toolkit": "^1.8.3",
     "axios": "^0.27.2",
-    "bbb-breakout-sdk": "git+https://github.com/matheus-lagreca/bbb-mobile-sdk.git#31bc05146b4f",
+    "bbb-breakout-sdk": "git+https://github.com/matheus-lagreca/bbb-mobile-sdk.git#801caf30b7f7",
     "browser-bunyan": "^1.8.0",
     "ejson": "^2.2.3",
     "eventemitter2": "^6.4.7",
-    "expo": "^52.0.18",
+    "expo": "^52.0.30",
     "expo-application": "~6.0.1",
     "expo-av": "~15.0.1",
     "expo-device": "~7.0.1",
     "expo-linking": "~7.0.3",
+    "expo-notifications": "~0.29.11",
     "expo-splash-screen": "~0.29.18",
     "expo-status-bar": "~2.0.0",
     "graphql-ws": "^5.16.0",
@@ -81,8 +82,7 @@
     "rn-android-keyboard-adjust": "^2.1.2",
     "styled-components": "^5.3.5",
     "url": "^0.11.0",
-    "util": "^0.12.4",
-    "expo-notifications": "~0.29.11"
+    "util": "^0.12.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.19.3",
