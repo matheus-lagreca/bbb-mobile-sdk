@@ -37,27 +37,8 @@ const UserJoinScreen = () => {
       dispatch(setLoggedIn(true));
       if (currentUser.guestStatus === 'WAIT') {
         navigation.navigate('GuestScreen');
-      } else if (currentUser?.meeting?.ended) {
-        navigation.navigate('FeedbackScreen', {
-          currentUser: {
-            ...currentUser,
-            leaveReason: 'meetingEnded'
-          }
-        });
-      } else if (currentUser.loggedOut) {
-        navigation.navigate('FeedbackScreen', {
-          currentUser: {
-            ...currentUser,
-            leaveReason: 'loggedOut'
-          }
-        });
-      } else if (currentUser.ejected) {
-        navigation.navigate('FeedbackScreen', {
-          currentUser: {
-            ...currentUser,
-            leaveReason: 'kicked'
-          }
-        });
+      } else if (currentUser?.meeting?.ended || currentUser.loggedOut || currentUser.ejected) {
+        navigation.navigate('EndSessionScreen');
       } else if (currentUser.joined) {
         navigation.navigate('DrawerNavigator');
       }
