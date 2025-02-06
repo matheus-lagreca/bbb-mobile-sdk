@@ -7,7 +7,6 @@ import useJoinMeeting from '../../graphql/hooks/use-join-meeting';
 import DrawerNavigator from '../../components/custom-drawer/drawer-navigator';
 import UserJoinScreen from '../user-join-screen';
 import GuestScreen from '../guest-screen';
-import FeedbackScreen from '../feedback-screen';
 import EndSessionScreen from '../end-session-screen';
 import Styled from './styles';
 
@@ -78,14 +77,6 @@ const MainNavigator = (props) => {
             />
           )}
         </Stack.Screen>
-        <Stack.Screen
-          name="FeedbackScreen"
-          component={FeedbackScreen}
-          options={{
-            title: 'FeedbackScreen',
-            headerShown: false,
-          }}
-        />
         <Stack.Screen
           name="EndSessionScreen"
           options={{
