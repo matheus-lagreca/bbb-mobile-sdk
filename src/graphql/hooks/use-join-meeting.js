@@ -10,6 +10,7 @@ import UrlUtils from '../../utils/functions';
 import {
   setJoinUrl, setApi, setHost, setSessionToken
 } from '../../store/redux/slices/wide-app/client';
+import uuid from 'react-native-uuid';
 
 const useJoinMeeting = (url) => {
   const [loginStage, setLoginStage] = useState(0);
@@ -134,7 +135,7 @@ const useJoinMeeting = (url) => {
 
   async function connectGraphqlServer() {
     if (sessionToken == null) return;
-    const clientSessionUUID = '1234';
+    const clientSessionUUID = uuid.v4();
 
     let wsLink;
     try {
