@@ -13,6 +13,7 @@ const EndSessionScreen = (props) => {
     return onLeaveSession();
   };
 
+  // TODO: handle breakouts (when breakout-sdk stop existing)
   return (
     <Styled.ContainerView>
       <Styled.Image
