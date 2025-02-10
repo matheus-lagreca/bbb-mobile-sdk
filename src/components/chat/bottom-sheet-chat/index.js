@@ -9,7 +9,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import HTMLView from 'react-native-htmlview';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useBottomSheetBackHandler } from '../../../hooks/useBottomSheetBackHandler';
 import { setHasUnreadMessages, setBottomChatOpen } from '../../../store/redux/slices/wide-app/chat';
@@ -101,13 +101,16 @@ const BottomSheetChat = () => {
   };
 
   const renderPresenterMessage = (item) => {
+    const senderName = item.senderName
     return (
       <View style={Styled.styles.item} key={item.timestamp}>
           <Styled.Card>
         <Styled.ServerContainer>
             <MaterialCommunityIcons name="monitor" size={24} color={Colors.lightGray400} />
             <Styled.ServerMsg>
-              {`${item.senderName} is now the presenter`}
+              <Trans i18nKey="mobileSdk.chat.serverMsg" values={senderName}>
+                {{ senderName }}
+              </Trans>
             </Styled.ServerMsg>
         </Styled.ServerContainer>
           </Styled.Card>
