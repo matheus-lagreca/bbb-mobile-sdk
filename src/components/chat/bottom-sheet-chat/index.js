@@ -18,6 +18,7 @@ import IconButtonComponent from '../../icon-button';
 import Colors from '../../../constants/colors';
 import Styled from './styles';
 import Queries from './queries';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const BottomSheetChat = () => {
   const height = useHeaderHeight();
@@ -65,7 +66,15 @@ const BottomSheetChat = () => {
     );
   };
 
+  // TODO: move these to a chat component
   const renderItem = useCallback(({ item }) => {
+    switch (item.messageType) {
+      case "userIsPresenterMsg": return renderPresenterMessage(item);
+      default: return renderDefaultMessage(item);
+    }
+  }, []);
+
+  const renderDefaultMessage = (item) => {
     const timestamp = new Date(item.createdAt);
     return (
       <View style={Styled.styles.item} key={item.timestamp}>
@@ -89,7 +98,22 @@ const BottomSheetChat = () => {
         </Styled.ContainerItem>
       </View>
     );
-  }, []);
+  };
+
+  const renderPresenterMessage = (item) => {
+    return (
+      <View style={Styled.styles.item} key={item.timestamp}>
+          <Styled.Card>
+        <Styled.ServerContainer>
+            <MaterialCommunityIcons name="monitor" size={24} color={Colors.lightGray400} />
+            <Styled.ServerMsg>
+              {`${item.senderName} is now the presenter`}
+            </Styled.ServerMsg>
+        </Styled.ServerContainer>
+          </Styled.Card>
+      </View>
+    );
+  };
 
   const renderEmptyChatHandler = () => {
     if (messages?.length !== 0) {
