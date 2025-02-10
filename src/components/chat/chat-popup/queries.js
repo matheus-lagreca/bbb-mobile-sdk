@@ -9,6 +9,7 @@ const CHAT_MESSAGE_PUBLIC_SUB = gql`
       createdAt
       message
       messageId
+      messageType
       senderId
       senderName
       senderRole

@@ -19,7 +19,8 @@ const ChatPopupList = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (lastMessage?.message
+      console.log(JSON.stringify(lastMessage, null, 2))
+      if (lastMessage?.message && lastMessage?.messageType === "default"
       && !isBottomChatOpen) {
         setShowMessage(true);
       }
