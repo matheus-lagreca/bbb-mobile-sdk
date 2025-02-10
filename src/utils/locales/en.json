@@ -192,6 +192,7 @@
   "mobileSdk.breakout.noBreakoutsSubtitle": "When you are added to a Breakout Room, it will be available to access here.",
   "mobileSdk.breakout.participantsLabel": "participants",
   "mobileSdk.chat.isEmptyLabel": "Chat is empty.",
+  "mobileSdk.chat.serverMsg": "{{senderName}} is now the presenter",
   "mobileSdk.breakout.starting": "Rooms starting...",
   "mobileSdk.breakout.finishing": "Rooms finishing...",
   "mobileSdk.breakout.inviteModal.title": "Breakout room",

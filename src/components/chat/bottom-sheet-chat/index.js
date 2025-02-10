@@ -9,7 +9,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import HTMLView from 'react-native-htmlview';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { useBottomSheetBackHandler } from '../../../hooks/useBottomSheetBackHandler';
 import { setHasUnreadMessages, setBottomChatOpen } from '../../../store/redux/slices/wide-app/chat';
@@ -18,6 +18,7 @@ import IconButtonComponent from '../../icon-button';
 import Colors from '../../../constants/colors';
 import Styled from './styles';
 import Queries from './queries';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const BottomSheetChat = () => {
   const height = useHeaderHeight();
@@ -65,7 +66,15 @@ const BottomSheetChat = () => {
     );
   };
 
+  // TODO: move these to a chat component
   const renderItem = useCallback(({ item }) => {
+    switch (item.messageType) {
+      case "userIsPresenterMsg": return renderPresenterMessage(item);
+      default: return renderDefaultMessage(item);
+    }
+  }, []);
+
+  const renderDefaultMessage = (item) => {
     const timestamp = new Date(item.createdAt);
     return (
       <View style={Styled.styles.item} key={item.timestamp}>
@@ -89,7 +98,25 @@ const BottomSheetChat = () => {
         </Styled.ContainerItem>
       </View>
     );
-  }, []);
+  };
+
+  const renderPresenterMessage = (item) => {
+    const senderName = item.senderName
+    return (
+      <View style={Styled.styles.item} key={item.timestamp}>
+          <Styled.Card>
+        <Styled.ServerContainer>
+            <MaterialCommunityIcons name="monitor" size={24} color={Colors.lightGray400} />
+            <Styled.ServerMsg>
+              <Trans i18nKey="mobileSdk.chat.serverMsg" values={senderName}>
+                {{ senderName }}
+              </Trans>
+            </Styled.ServerMsg>
+        </Styled.ServerContainer>
+          </Styled.Card>
+      </View>
+    );
+  };
 
   const renderEmptyChatHandler = () => {
     if (messages?.length !== 0) {
