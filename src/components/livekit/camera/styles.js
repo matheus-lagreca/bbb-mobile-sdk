@@ -23,6 +23,7 @@ const LKCameraStream = ({ isGrid, trackRef }) => (
   <VideoTrack
     trackRef={trackRef}
     style={isGrid ? styles.streamGrid : styles.stream}
+    zOrder={0}
   />
 );
 

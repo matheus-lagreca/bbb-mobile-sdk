@@ -31,6 +31,7 @@ const LKScreenshareStream = ({ trackRef }) => (
   <VideoTrack
     trackRef={trackRef}
     style={styles.stream}
+    zOrder={1}
   />
 );
 
