@@ -20,22 +20,19 @@ const GridView = () => {
   const { t } = useTranslation();
 
   const removeCurrentUserFromVideoUsers = () => {
-    const index = videoUsersCopy?.findIndex((user) => user.userId === currentUserId);
-    if (index !== -1 && videoUsersCopy?.length > 0) {
-      videoUsersCopy.splice(index, 1);
-    }
+    return videoUsersCopy?.filter(user => user.userId !== currentUserId);
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      setNumOfColumns(userData?.user.length > 2 ? 2 : 1);
-    }, [videoUsersCopy])
-  );
 
   useFocusEffect(
     useCallback(() => {
       removeCurrentUserFromVideoUsers();
     }, [videoUsersCopy, currentUserId])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      setNumOfColumns(userData?.user.length > 2 ? 2 : 1);
+    }, [userData])
   );
 
   const renderItem = (videoUser) => {
