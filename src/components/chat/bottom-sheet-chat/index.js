@@ -30,6 +30,7 @@ const BottomSheetChat = () => {
   const sheetRef = useRef(null);
   const flatListRef = useRef(null);
   const [messageText, setMessageText] = useState('');
+  const sendMsgDisabled = messageText.trim().length === 0;
   const dispatch = useDispatch();
   const isBottomChatOpen = useSelector((state) => state.chat.isBottomChatOpen);
 
@@ -163,9 +164,10 @@ const BottomSheetChat = () => {
             />
             <IconButtonComponent
               icon="send"
-              iconColor={Colors.white}
-              containerColor={Colors.blue}
+              iconColor={sendMsgDisabled ? Colors.blueGray : Colors.white}
+              containerColor={sendMsgDisabled ? Colors.white: Colors.blue}
               animated
+              disabled={sendMsgDisabled}
               onPress={() => {
                 setMessageText('');
                 return handleSendMessage(messageText);
