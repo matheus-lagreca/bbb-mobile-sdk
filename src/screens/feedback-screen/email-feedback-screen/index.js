@@ -44,7 +44,6 @@ const EmailFeedbackScreen = ({ route }) => {
 
   const sendFeedback = () => {
     const { host, payload } = route.params;
-
     axios.post(`https://${host}${POST_ROUTE}`, payload).catch((e) => {
       logger.warn({
         logCode: 'app_user_feedback_not_sent_error',
@@ -67,7 +66,8 @@ const EmailFeedbackScreen = ({ route }) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ width: '100%' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
       >
         <Styled.ContainerView>
           <Styled.Title>{title}</Styled.Title>

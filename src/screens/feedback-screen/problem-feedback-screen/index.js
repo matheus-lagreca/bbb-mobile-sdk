@@ -219,7 +219,7 @@ const ProblemFeedbackScreen = ({ route }) => {
 
         <KeyboardAvoidingView
           style={{ width: '100%' }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
         >
           <Styled.TextInputOther
             onFocus={() => checkOption('other')}
