@@ -163,9 +163,8 @@ const ProblemFeedbackScreen = ({ route }) => {
   };
 
   const sendFeedback = () => {
-    const { host } = route.params.meetingData;
+    const host = route.params.host;
     const payload = buildFeedback();
-
     axios.post(`https://${host}${POST_ROUTE}`, payload).catch((e) => {
       logger.warn({
         logCode: 'app_user_feedback_not_sent_error',
@@ -179,7 +178,7 @@ const ProblemFeedbackScreen = ({ route }) => {
 
   const handleSendProblem = () => {
     if (activateSendProblem()) {
-      const { host } = route.params.meetingData;
+      const host = route.params.host;
       const payload = buildFeedback();
       const stepData = buildStepData();
       sendFeedback();
@@ -203,18 +202,18 @@ const ProblemFeedbackScreen = ({ route }) => {
         <Styled.Title>{questionTitle}</Styled.Title>
         <Styled.OptionsContainer>
           {
-          feedbackOptions.map((option) => {
-            return (
-              <Styled.CheckContainerItem key={option.code}>
-                <Styled.Option
-                  status={optionsStatus[option.code] ? 'checked' : 'unchecked'}
-                  color={Colors.white}
-                  onPress={() => flipOption(option.code)}
-                />
-                <Styled.LabelOption>{option.label}</Styled.LabelOption>
-              </Styled.CheckContainerItem>
-            );
-          })
+            feedbackOptions.map((option) => {
+              return (
+                <Styled.CheckContainerItem key={option.code}>
+                  <Styled.Option
+                    status={optionsStatus[option.code] ? 'checked' : 'unchecked'}
+                    color={Colors.white}
+                    onPress={() => flipOption(option.code)}
+                  />
+                  <Styled.LabelOption>{option.label}</Styled.LabelOption>
+                </Styled.CheckContainerItem>
+              );
+            })
           }
         </Styled.OptionsContainer>
 
