@@ -26,14 +26,14 @@
   },
   "feedback": {
     "enabled": true,
-    "route": "/html5client/feedback",
+    "route": "/feedback/submit",
     "minimumScore": 1,
     "maximumScore": 10,
     "initialScore": 5,
     "custom": {
       "_comments_1": "feedback.enabled must be true for this flag to take effect",
       "enabled": true,
-      "route": "/html5client/customFeedback",
+      "route": "/feedback/submit",
       "customerMetadata": {
         "name": "mconf-institution-name",
         "guid": "mconf-institution-guid"
