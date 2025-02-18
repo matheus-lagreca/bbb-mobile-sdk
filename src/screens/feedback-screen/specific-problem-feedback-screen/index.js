@@ -214,7 +214,7 @@ const SpecificProblemFeedbackScreen = ({ route }) => {
         </Styled.OptionsContainer>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
           keyboardVerticalOffset={height + 100}
           style={{ width: '100%' }}
         >
