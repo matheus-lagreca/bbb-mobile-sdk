@@ -1,5 +1,5 @@
 import React, {
-  useCallback, useRef, useState
+  useCallback, useState
 } from 'react';
 import { nativeApplicationVersion, nativeBuildVersion } from 'expo-application';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -10,16 +10,17 @@ import { useSelector } from 'react-redux';
 import * as Device from 'expo-device';
 import axios from 'axios';
 import logger from '../../services/logger';
-import { selectMeeting } from '../../store/redux/slices/meeting';
 import useAppState from '../../hooks/use-app-state';
 import PiPView from './pip-view';
 import Settings from '../../../settings.json';
 import Styled from './styles';
 import Service from './service';
+import { useSubscription } from '@apollo/client';
+import { GET_USER_CURRENT } from '../user-join-screen/queries';
 
 const POST_ROUTE = Settings.feedback.route;
 const APP_IDENTIFIER = Settings.feedback.custom.appIdentifier;
-const CUSTOMER_METADATA = Settings.feedback.custom.customerMetadata;
+// const CUSTOMER_METADATA = Settings.feedback.custom.customerMetadata;
 
 const FeedbackScreen = (props) => {
   const { t } = useTranslation();
@@ -27,12 +28,13 @@ const FeedbackScreen = (props) => {
   const title = t(Service.parseEndReason(leaveReason));
   const navigation = useNavigation();
   const [rating, setRating] = useState(undefined);
-  const currentMeeting = useSelector(selectMeeting);
   const isPiPEnabled = useSelector((state) => state.layout.isPiPEnabled);
-  const meetingData = useRef(null);
-  const user = useRef(null);
   const appState = useAppState();
 
+  const { data: user } = useSubscription(GET_USER_CURRENT);
+  const logoutUrl = user?.user_current[0]?.meeting?.logoutUrl;
+  const meetingData = user?.user_current[0]?.meeting;
+  const userData = user?.user_current[0];
   const isAndroid = Platform.OS === 'android';
   const isBackgrounded = appState === 'background';
 
@@ -49,29 +51,24 @@ const FeedbackScreen = (props) => {
   );
 
   const handleNextButton = () => {
-    navigation.navigate('EndSessionScreen');
+    sendStarRating();
   };
 
-  const nextScreen = (payload) => {
-    navigation.navigate('ProblemFeedbackScreen', { payload, meetingData: meetingData.current });
+  const nextScreen = (payload, host) => {
+    navigation.navigate('ProblemFeedbackScreen', { payload, host, meetingData });
   };
 
-  const buildFeedback = () => {
-    const { role, name, intId } = user.current;
+  const buildFeedback = (host) => {
     const payload = {
       rating,
-      userId: intId,
-      userName: name,
-      authToken,
-      meetingId: currentMeeting?.meetingProp?.intId,
+      userId: userData?.userId,
+      meetingId: meetingData?.meetingId,
       comment: '',
-      userRole: role,
+      // userRole: role, // TODO: get the user role before leaving the meeting using redux or route...
     };
-    const {
-      authToken,
-      confname,
-      metadata = {},
-    } = meetingData.current;
+    // const {
+    //   metadata = {},
+    // } = meetingData;
 
     const getDeviceType = () => {
       if (Platform.OS === 'ios') {
@@ -84,10 +81,12 @@ const FeedbackScreen = (props) => {
       timestamp: new Date().toISOString(),
       rating,
       session: {
-        session_name: confname,
-        institution_name: metadata.name,
-        institution_guid: metadata[CUSTOMER_METADATA.guid],
-        session_id: payload.meetingId,
+        sessionName: meetingData?.name,
+        // institution_name: metadata.name,
+        // institution_guid: metadata[CUSTOMER_METADATA.guid],
+        institutionName: host,
+        institutionGuid: meetingData?.name,
+        sessionId: payload.meetingId,
       },
       device: {
         type: getDeviceType(),
@@ -101,8 +100,8 @@ const FeedbackScreen = (props) => {
       },
       user: {
         name: payload.userName,
-        id: payload.userId,
-        role: payload.userRole,
+        userId: payload.userId,
+        // role: payload.userRole,
       },
       feedback: {
         incomplete: 'Incomplete Feedback'
@@ -113,8 +112,10 @@ const FeedbackScreen = (props) => {
   };
 
   const sendStarRating = () => {
-    const payload = buildFeedback();
-    const { host } = meetingData.current;
+    const url = new URL(logoutUrl);
+    const host = url.hostname;
+    const payload = buildFeedback(host);
+
     // sends partial feedback
     axios.post(`https://${host}${POST_ROUTE}`, payload).catch((e) => {
       logger.warn({
@@ -125,7 +126,7 @@ const FeedbackScreen = (props) => {
         },
       }, `Unable to send feedback: ${e.message}`);
     });
-    nextScreen(payload);
+    nextScreen(payload, host);
   };
 
   const noRating = () => rating === undefined;

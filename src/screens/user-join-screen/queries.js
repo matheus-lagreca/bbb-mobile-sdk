@@ -12,6 +12,8 @@ const GET_USER_CURRENT = gql`
       loggedOut
       guestStatus
       meeting {
+        meetingId
+        name
         ended
         endedReasonCode
         endedByUserName
