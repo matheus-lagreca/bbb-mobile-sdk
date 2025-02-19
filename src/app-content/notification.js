@@ -1,9 +1,10 @@
 import * as Notifications from 'expo-notifications';
 import { useMutation } from '@apollo/client';
-import LeaveQueries from '../components/custom-drawer/queries';
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import logger from '../services/logger';
+import LeaveQueries from '../components/custom-drawer/queries';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -48,23 +49,35 @@ const NotificationController = () => {
   useEffect(() => {
     if (audioIsConnected) {
       notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-        setNotification(notification)
+        setNotification(notification);
       });
 
       responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
         console.log(response);
       });
 
-      scheduleNotification()
+      scheduleNotification();
     }
 
     return () => {
-      notificationListener.current &&
+      if (notificationListener.current) {
         Notifications.removeNotificationSubscription(notificationListener.current);
-      responseListener.current &&
-        Notifications.removeNotificationSubscription(responseListener.current);
-    };
+      }
 
+      if (responseListener.current) {
+        Notifications.removeNotificationSubscription(responseListener.current);
+      }
+
+      Notifications.dismissAllNotificationsAsync().catch((error) => {
+        logger.error({
+          logCode: 'error_dismissing_notifications',
+          extraInfo: {
+            errorMessage: error?.message,
+            errorStack: error?.stack,
+          },
+        }, `Error dismissing notifications: ${error?.message}`);
+      });
+    };
   }, [audioIsConnected]);
 
   useEffect(() => {
