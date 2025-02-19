@@ -337,7 +337,8 @@ class AudioManager {
   }
 
   onAudioExit(bridge) {
-    if (bridge == null || this.bridge?.clientSessionNumber === bridge.clientSessionNumber) {
+    if ((bridge == null || this.bridge == null)
+      || (this.bridge?.clientSessionNumber === bridge.clientSessionNumber)) {
       store.dispatch(setIsConnected(false));
       store.dispatch(setIsConnecting(false));
       store.dispatch(setIsReconnecting(false));
@@ -345,7 +346,7 @@ class AudioManager {
       this.bridge = null;
     }
 
-    if (this.inputStream && this.inputStream.id === bridge.stream.id) {
+    if (this.inputStream && this.inputStream.id === bridge?.stream?.id) {
       this.inputStream.getTracks().forEach((track) => track.stop());
       this.inputStream = null;
     }
