@@ -89,14 +89,14 @@ const NotificationController = () => {
   }, []);
 
   // handle buttons
-    Notifications.addNotificationResponseReceivedListener((response) => {
-      Notifications.getNotificationCategoriesAsync().then((categories) => {
-        if (response.actionIdentifier === "leave") {
-          Notifications.dismissAllNotificationsAsync()
-          dispatchLeaveSession();
-        }
-      });
-    })
+  Notifications.addNotificationResponseReceivedListener((response) => {
+    Notifications.getNotificationCategoriesAsync().then((categories) => {
+      if (response.actionIdentifier === "leave") {
+        Notifications.dismissAllNotificationsAsync()
+        dispatchLeaveSession();
+      }
+    });
+  })
 
   return null;
 };
