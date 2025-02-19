@@ -16,6 +16,8 @@ const parseEndReason = (endReason) => {
       return 'app.error.403';
     case 'meetingEnded':
       return 'app.guest.meetingEnded';
+    case 'ejected':
+      return 'app.meeting.logout.ejectedFromMeeting';
     default:
       return 'mobileSdk.error.fallback';
   }

@@ -17,7 +17,7 @@ import logger from '../../services/logger';
 import useMeeting from '../../graphql/hooks/useMeeting';
 import { useAudioJoin } from '../../hooks/use-audio-join';
 import useCurrentUser from '../../graphql/hooks/useCurrentUser';
-import { liveKitRoom } from '../../services/livekit';
+import { liveKitRoom, disconnectLiveKitRoom } from '../../services/livekit';
 import { USER_SET_TALKING } from './mutations';
 import SelectiveSubscription from './selective-subscription/index.tsx';
 
@@ -121,6 +121,12 @@ const BBBLiveKitRoom = ({ children }) => {
         });
     }
   }, [sessionToken, host, userId, meetingData, meetingLoading]);
+
+  useEffect(() => {
+    return () => {
+      disconnectLiveKitRoom({ final: true });
+    };
+  }, []);
 
   if (!shouldUseLiveKit) return children;
 

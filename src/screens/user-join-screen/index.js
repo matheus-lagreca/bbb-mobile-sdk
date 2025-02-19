@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { GET_USER_CURRENT, USER_JOIN_MUTATION } from './queries';
 import { setConnected, setInitialCurrentUser, setLoggedIn } from '../../store/redux/slices/wide-app/client';
+import { disconnectLiveKitRoom } from '../../services/livekit';
 import Styled from './styles';
 
 const r = Math.floor(Math.random() * 5) + 1;
@@ -31,33 +32,29 @@ const UserJoinScreen = () => {
 
   useEffect(() => {
     if (currentUser) {
+      const handleNavigateToFeedbackScreen = (leaveReason) => {
+        disconnectLiveKitRoom({ final: true });
+        navigation.navigate('FeedbackScreen', {
+          currentUser: {
+            ...currentUser,
+            leaveReason
+          }
+        });
+      };
+
       handleDispatchUserJoin(currentUser.authToken);
       dispatch(setInitialCurrentUser(currentUser));
       dispatch(setConnected(true));
       dispatch(setLoggedIn(true));
+
       if (currentUser.guestStatus === 'WAIT') {
         navigation.navigate('GuestScreen');
       } else if (currentUser?.meeting?.ended) {
-        navigation.navigate('FeedbackScreen', {
-          currentUser: {
-            ...currentUser,
-            leaveReason: 'meetingEnded'
-          }
-        });
+        handleNavigateToFeedbackScreen('meetingEnded');
       } else if (currentUser.loggedOut) {
-        navigation.navigate('FeedbackScreen', {
-          currentUser: {
-            ...currentUser,
-            leaveReason: 'loggedOut'
-          }
-        });
-      } else if (currentUser.ejected) {
-        navigation.navigate('FeedbackScreen', {
-          currentUser: {
-            ...currentUser,
-            leaveReason: 'kicked'
-          }
-        });
+        handleNavigateToFeedbackScreen('loggedOut');
+      } else if (currentUser.ejectReasonCode) {
+        handleNavigateToFeedbackScreen('ejected');
       } else if (currentUser.joined) {
         navigation.navigate('DrawerNavigator');
       }
