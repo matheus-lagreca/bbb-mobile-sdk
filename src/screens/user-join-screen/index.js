@@ -33,6 +33,8 @@ const UserJoinScreen = () => {
   useEffect(() => {
     if (currentUser) {
       const handleNavigateToFeedbackScreen = (leaveReason) => {
+        dispatch(setConnected(false));
+        dispatch(setLoggedIn(false));
         disconnectLiveKitRoom({ final: true });
         navigation.navigate('FeedbackScreen', {
           currentUser: {
