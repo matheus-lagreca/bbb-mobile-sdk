@@ -32,14 +32,9 @@ const UserJoinScreen = () => {
 
   useEffect(() => {
     if (currentUser) {
-      const handleNavigateToFeedbackScreen = (leaveReason) => {
+      const handleNavigateToEndSessionScreen = () => {
         disconnectLiveKitRoom({ final: true });
-        navigation.navigate('FeedbackScreen', {
-          currentUser: {
-            ...currentUser,
-            leaveReason
-          }
-        });
+        navigation.navigate('EndSessionScreen');
       };
 
       handleDispatchUserJoin(currentUser.authToken);
@@ -49,12 +44,8 @@ const UserJoinScreen = () => {
 
       if (currentUser.guestStatus === 'WAIT') {
         navigation.navigate('GuestScreen');
-      } else if (currentUser?.meeting?.ended) {
-        handleNavigateToFeedbackScreen('meetingEnded');
-      } else if (currentUser.loggedOut) {
-        handleNavigateToFeedbackScreen('loggedOut');
-      } else if (currentUser.ejectReasonCode) {
-        handleNavigateToFeedbackScreen('ejected');
+      } else if (currentUser?.meeting?.ended || currentUser.loggedOut || currentUser.ejectReasonCode) {
+        handleNavigateToEndSessionScreen();
       } else if (currentUser.joined) {
         navigation.navigate('DrawerNavigator');
       }
