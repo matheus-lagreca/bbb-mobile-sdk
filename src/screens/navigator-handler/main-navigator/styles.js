@@ -1,4 +1,4 @@
-import Colors from '../../constants/colors';
+import Colors from '../../../constants/colors';
 
 const ScreenOptions = {
   headerStyle: { backgroundColor: Colors.blue },

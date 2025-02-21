@@ -70,6 +70,9 @@ const clientSlice = createSlice({
     setJoinUrl: (state, action) => {
       state.meetingData.joinUrl = action.payload;
     },
+    setTransferUrl: (state, action) => {
+      state.transferUrl = action.payload;
+    },
     setInitialCurrentUser: (state, action) => {
       state.initialCurrentUser = action.payload;
     },
@@ -414,6 +417,7 @@ export const {
   setMeetingData,
   setBreakoutData,
   setJoinUrl,
+  setTransferUrl,
   setFeedbackEnabled,
   sessionStateChanged,
   connectionStatusChanged,

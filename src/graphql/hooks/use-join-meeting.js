@@ -8,7 +8,8 @@ import { createClient } from 'graphql-ws';
 import { onError } from '@apollo/client/link/error';
 import UrlUtils from '../../utils/functions';
 import {
-  setJoinUrl, setApi, setHost, setSessionToken
+  setJoinUrl, setApi, setHost, setSessionToken,
+  setTransferUrl
 } from '../../store/redux/slices/wide-app/client';
 import uuid from 'react-native-uuid';
 
@@ -45,14 +46,19 @@ const useJoinMeeting = (url) => {
   }
 
   async function joinWithSessionToken() {
-    fetch(`${urlWithSessionId}`)
-      .then((data) => {
-        if (data.status === 200) {
-          setLoginStage(2);
-          console.log('DONE STAGE 1');
-        }
-      })
-      .catch((error) => console.error('error joinWithSessionToken()', error));
+    if (urlWithSessionId.includes('transfer/')) {
+      dispatch(setTransferUrl(urlWithSessionId))
+      setLoginStage(7)
+    } else {
+      fetch(`${urlWithSessionId}`)
+        .then((data) => {
+          if (data.status === 200) {
+            setLoginStage(2);
+            console.log('DONE STAGE 1');
+          }
+        })
+        .catch((error) => console.error('error joinWithSessionToken()', error));
+    }
   }
 
   async function callApi() {
@@ -251,6 +257,9 @@ const useJoinMeeting = (url) => {
         break;
       case 6:
         console.log('LOGIN COMPLETE');
+        break;
+      case 7:
+        console.log('TRANSFER')
         break;
       default:
         console.log('error');
