@@ -39,6 +39,7 @@ const ConfirmButton = ({
     <ButtonCreate
       mode="contained"
       onPress={onPress}
+      disable={disabled}
       buttonColor={disabled ? Colors.lightGray300 : Colors.orange}
       textColor={Colors.white}
       labelStyle={{
