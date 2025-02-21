@@ -157,13 +157,13 @@ const AppContent = ({
   }, []);
 
   if (transferUrl) {
-    transferUrlRef.current = transferUrl;
-    return (
-      <TransferScreen
-        transferUrl={transferUrl}
-        onLeaveSession={onForcedLeaveSession}
-      />
-    );
+    // transferUrlRef.current = transferUrl;
+    // return (
+    //   <TransferScreen
+    //     transferUrl={transferUrl}
+    //     onLeaveSession={onForcedLeaveSession}
+    //   />
+    // );
   }
 
   const AppContent = (props) => {

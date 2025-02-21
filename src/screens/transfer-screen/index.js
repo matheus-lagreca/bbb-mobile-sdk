@@ -4,11 +4,17 @@ import WebView from 'react-native-webview';
 import { useTranslation } from 'react-i18next';
 import LottieView from 'lottie-react-native';
 import Styled from './styles';
+import { useNavigation } from '@react-navigation/native';
 
 const TransferScreen = (props) => {
-  const { transferUrl, onLeaveSession } = props;
+  const { transferUrl } = props;
   const [joinTransfer, setJoinTransfer] = useState(false);
+  const navigation = useNavigation();
   const { t } = useTranslation();
+
+  const handleLeaveSessionButtonPress = () => {
+    navigation.navigate('EndSessionScreen');
+  };
 
   const leaveConference = () => (
     Alert.alert(t('app.leaveModal.title'), t('app.leaveModal.desc'), [
@@ -19,7 +25,7 @@ const TransferScreen = (props) => {
       },
       {
         text: 'OK',
-        onPress: () => { onLeaveSession(); }
+        onPress: handleLeaveSessionButtonPress
       },
     ])
   );

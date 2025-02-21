@@ -8,7 +8,7 @@ import InCallManagerController from './src/app-content/in-call-manager';
 // import NotifeeController from './src/app-content/notifee';
 import LocalesController from './src/app-content/locales';
 import AppStatusBar from './src/components/status-bar';
-import MainNavigator from './src/screens/main-navigator';
+import NavigatorHandler from './src/screens/navigator-handler';
 import { disconnectLiveKitRoom } from './src/services/livekit';
 // inject stores
 import { injectStore as injectStoreVM } from './src/services/webrtc/video-manager';
@@ -54,7 +54,7 @@ const App = (props) => {
     <Provider store={store}>
       <NavigationContainer theme={MyTheme} independent>
         <OrientationLocker orientation={PORTRAIT} />
-        <MainNavigator
+        <NavigatorHandler
           {...props}
           joinURL={_joinURL}
           onLeaveSession={_onLeaveSession}

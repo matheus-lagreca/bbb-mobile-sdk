@@ -66,7 +66,7 @@ const DrawerNavigator = ({
           }}
         />
 
-        { !isBreakout && (
+        {!isBreakout && (
           <Drawer.Screen
             name="PollScreen"
             component={PollNavigator}
