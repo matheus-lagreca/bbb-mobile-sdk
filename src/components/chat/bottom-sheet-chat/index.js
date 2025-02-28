@@ -25,7 +25,7 @@ const BottomSheetChat = () => {
   const { t } = useTranslation();
   const { data } = useSubscription(Queries.CHAT_MESSAGE_PUBLIC_SUB);
   const [dispatchSendMessage] = useMutation(Queries.SEND_MESSAGE_MUTATION);
-  const messages = data?.chat_message_public;
+  const messages = useMemo(() => data?.chat_message_public || [], [data]);
 
   const sheetRef = useRef(null);
   const flatListRef = useRef(null);
@@ -51,7 +51,7 @@ const BottomSheetChat = () => {
     });
   };
 
-  useBottomSheetBackHandler(isBottomChatOpen, sheetRef, () => {});
+  useBottomSheetBackHandler(isBottomChatOpen, sheetRef, () => { });
 
   const handleMessage = (message) => {
     if ((/<a\b[^>]*>/.test(message))) {
@@ -68,11 +68,15 @@ const BottomSheetChat = () => {
 
   // TODO: move these to a chat component
   const renderItem = useCallback(({ item }) => {
-    switch (item.messageType) {
-      case "userIsPresenterMsg": return renderPresenterMessage(item);
-      default: return renderDefaultMessage(item);
-    }
-  }, []);
+  switch (item.messageType) {
+    case "userIsPresenterMsg":
+      return renderPresenterMessage(item);
+    case "userAwayStatusMsg":
+      return renderAwayMessage(item);
+    default:
+      return renderDefaultMessage(item);
+  }
+}, [messages]);
 
   const renderDefaultMessage = (item) => {
     const timestamp = new Date(item.createdAt);
@@ -101,19 +105,54 @@ const BottomSheetChat = () => {
   };
 
   const renderPresenterMessage = (item) => {
-    const senderName = item.senderName
+    const senderName = item.senderName;
     return (
       <View style={Styled.styles.item} key={item.timestamp}>
-          <Styled.Card>
-        <Styled.ServerContainer>
+        <Styled.Card>
+          <Styled.ServerContainer>
             <MaterialCommunityIcons name="monitor" size={24} color={Colors.lightGray400} />
             <Styled.ServerMsg>
-              <Trans i18nKey="mobileSdk.chat.serverMsg" values={senderName}>
+              <Trans i18nKey="mobileSdk.chat.presenter" values={senderName}>
                 {{ senderName }}
               </Trans>
             </Styled.ServerMsg>
-        </Styled.ServerContainer>
-          </Styled.Card>
+          </Styled.ServerContainer>
+        </Styled.Card>
+      </View>
+    );
+  };
+
+  // TODO: merge with presenter message
+  const renderAwayMessage = (item) => {
+    const senderName = item.senderName;
+    let metaData = {};
+
+    if (!item.messageMetadata) {
+      console.warn("messageMetadata is missing, waiting for data...");
+      return null;
+    }
+
+    try {
+      metaData = JSON.parse(item.messageMetadata);
+    } catch (error) {
+      console.error("Failed to parse messageMetadata", error);
+      return null;
+    }
+
+    const isAway = metaData?.away;
+
+    return (
+      <View style={Styled.styles.item} key={item.timestamp}>
+        <Styled.Card>
+          <Styled.ServerContainer>
+            <MaterialCommunityIcons name="clock-time-four-outline" size={24} color={Colors.lightGray400} />
+            <Styled.ServerMsg>
+              <Trans i18nKey={isAway ? "mobileSdk.chat.away" : "mobileSdk.chat.notAway"} values={{ senderName }}>
+                {{ senderName }}
+              </Trans>
+            </Styled.ServerMsg>
+          </Styled.ServerContainer>
+        </Styled.Card>
       </View>
     );
   };
@@ -143,9 +182,9 @@ const BottomSheetChat = () => {
           initialNumToRender={7}
           maxToRenderPerBatch={50}
           data={messages}
+          extraData={messages}
           updateCellsBatchingPeriod={500}
           renderItem={renderItem}
-          keyExtractor={(item) => item.createdAt}
           style={Styled.styles.list}
         />
         <KeyboardAvoidingView

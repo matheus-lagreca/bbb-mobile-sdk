@@ -8,6 +8,7 @@ const CHAT_MESSAGE_PUBLIC_SUB = gql`
       correlationId
       createdAt
       message
+      messageMetadata
       messageId
       messageType
       senderId
