@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import useCurrentUser from '../../graphql/hooks/useCurrentUser';
 import WebViewPlayer from './players/webview';
 import YouTubePlayer from './players/youtube';
+import EduPlayer from './players/eduplayer';
 import { EXTERNAL_VIDEO_SUBSCRIPTION } from './queries';
 import Styled from './styles';
 
@@ -27,8 +28,10 @@ const ExternalVideo = forwardRef(({ url }, ref) => {
   const playing = externalVideoData?.meeting[0]?.externalVideo?.playerPlaying;
   const playerCurrentTime = externalVideoData?.meeting[0]?.externalVideo?.playerCurrentTime;
 
+  //TODO: allow hgm and prod eduplay urls
   const type = (() => {
     if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
+    if (/eduplay\.rnp\.br\/app\/video(\/embed)?\//.test(url)) return 'eduplayer';
     // if (/vimeo\.com/.test(url)) return 'vimeo';
     // if (/twitch\.tv/.test(url)) return 'twitch';
     // if (/dailymotion\.com/.test(url)) return 'dailymotion';
@@ -68,6 +71,18 @@ const ExternalVideo = forwardRef(({ url }, ref) => {
       />
     );
   };
+
+  if (type === 'eduplayer') {
+    return (
+      <EduPlayer
+        ref={playerRef}
+        url={url}
+        playing={playing}
+        playerCurrentTime={effectivePlayerCurrentTime}
+        isPresenter={currentUserData?.isPresenter || false}
+      />
+    );
+  }
 
   if (type === 'unknown') {
     return (
