@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   useTracks,
-  useParticipantTracks,
   useLocalParticipant,
   RoomContext
 } from '@livekit/react-native';
