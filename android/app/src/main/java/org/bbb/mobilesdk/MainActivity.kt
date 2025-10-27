@@ -1,6 +1,7 @@
 package org.bbb.mobilesdk
 import expo.modules.splashscreen.SplashScreenManager
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 
@@ -42,6 +43,22 @@ class MainActivity : ReactActivity() {
               mainComponentName,
               fabricEnabled
           ){})
+  }
+
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    
+    try {
+      android.util.Log.d("MainActivity", "onActivityResult called: requestCode=$requestCode, resultCode=$resultCode")
+      val screenCaptureModule = ScreenCaptureModule.getInstance()
+      if (screenCaptureModule != null) {
+        screenCaptureModule.handleActivityResult(requestCode, resultCode, data)
+      } else {
+        android.util.Log.w("MainActivity", "ScreenCaptureModule instance is null")
+      }
+    } catch (e: Exception) {
+      android.util.Log.e("MainActivity", "Error in onActivityResult: ${e.message}", e)
+    }
   }
 
   /**

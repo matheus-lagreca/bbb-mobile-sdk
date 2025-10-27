@@ -4,36 +4,36 @@ import { TouchableRipple } from 'react-native-paper';
 import { View } from 'react-native';
 import Colors from '../../../constants/colors';
 
-const ContainerPressable = styled(TouchableRipple)`
+const ContainerPressable = styled(TouchableRipple).attrs(({ isActive, isStarting, disabled }) => ({
+  disabled: disabled || false,
+}))`
   display: flex;
   align-items: center;
   flex-direction: row;
   justify-content: space-between;
-  background-color: ${Colors.blueGray};
+  background-color: ${({ isActive }) => isActive ? '#2E7D32' : Colors.blueGray};
   border-radius: 12px;
   padding: 12px;
   width: 100%;
   gap: 12px;
-  opacity: 0.3;
+  opacity: ${({ isStarting, disabled }) => (isStarting || disabled) ? 0.6 : 1};
+  border: ${({ isActive }) => isActive ? '2px solid #4CAF50' : 'none'};
 `;
 
 const ScreenshareIcon = styled(MaterialIcons)`
   padding: 4px;
 `;
 
-const ScreenshareIconContainer = () => (
-  <View style={{
-    display: 'flex', alignItems: 'center', justifyContent: 'center'
-  }}
-  >
-    <ScreenshareIcon name="screen-share" size={24} color={Colors.white} />
-  </View>
-);
+const ScreenshareIconContainer = styled(View)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
 
 const ScreenshareText = styled.Text`
   font-size: 16px;
   font-weight: 500;
-  color: ${Colors.white};
+  color: ${({ isActive }) => isActive ? '#4CAF50' : Colors.white};
   flex: 1;
 `;
 

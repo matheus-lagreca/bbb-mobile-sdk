@@ -31,7 +31,8 @@
     }
   },
   "features": {
-    "timer": true
+    "timer": true,
+    "screenshare": true
   },
   "whiteboard": true,
   "feedback": {
