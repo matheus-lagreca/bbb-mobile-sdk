@@ -43,6 +43,8 @@ const ContentArea = (props) => {
   const prevHasScreenshareRef = useRef(hasScreenshare);
   const isAndroid = Platform.OS === 'android';
 
+  const isUserScreensharing = useSelector((state) => state.screenshare.currentUserScreenshare);
+
   useEffect(() => {
     const prevHasScreenshare = prevHasScreenshareRef.current;
 
@@ -93,6 +95,15 @@ const ContentArea = (props) => {
       <ExternalVideo url={externalVideoUrl} />
     );
   };
+
+  const presenterView = () => {
+    return (
+      <Styled.ScreenshareBackground>
+        <Styled.ScreenshareText>{t('mobileSdk.screenshare.screensharing')}</Styled.ScreenshareText>
+      </Styled.ScreenshareBackground>
+    );
+  }
+
   const presentationView = () => {
     return (
       <Styled.Presentation
@@ -149,19 +160,16 @@ const ContentArea = (props) => {
     );
   };
 
+  const getContentView = () => {
+    if (externalVideoUrl) return externalVideoView();
+    if (isUserScreensharing) return presenterView();
+    if (hasScreenshare) return screenshareView();
+    return presentationView();
+  };
+
   return (
     <Styled.ContentAreaPressable>
-      {{
-        externalVideoUrl: externalVideoUrl ? externalVideoView() : null,
-        screenshare: hasScreenshare ? screenshareView() : null,
-        default: presentationView(),
-      }[
-        externalVideoUrl
-          ? 'externalVideoUrl'
-          : hasScreenshare
-            ? 'screenshare'
-            : 'default'
-      ]}
+      {getContentView()}
       {renderIcons()}
     </Styled.ContentAreaPressable>
   );
