@@ -1,7 +1,6 @@
 import {
   useTracks,
   useLocalParticipant,
-  useTracks
 } from '@livekit/react-native';
 import { Track } from 'livekit-client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
