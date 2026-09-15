@@ -9,11 +9,53 @@ import LeaveQueries from '../components/custom-drawer/queries';
 import { setPendingMuteAssert } from '../store/redux/slices/wide-app/audio';
 import logger from '../services/logger';
 import Colors from '../constants/colors';
+import { useAppInstance } from '../app-instance/context';
+import { getActiveInstanceOrNull } from '../app-instance/active-instance';
 
 const CHANNEL_ID = 'main_meeting_channel';
 // Fixed id: the breakout instance's notification replaces the main room's
-// instead of duplicating it (two full app instances run during breakouts)
+// instead of duplicating it (two App instances run during breakouts, and the
+// OS foreground service is one process-wide resource)
 const NOTIFICATION_ID = 'audio_notification_main';
+
+// Notification action handlers, one entry per mounted NotifeeController
+// (i.e. per App instance), keyed by instance id. notifee's event handlers are
+// process-global (onBackgroundEvent cannot even be unregistered), so they are
+// registered ONCE below and dispatch to the handlers of the *active* App
+// instance: the breakout while one is open, the main room otherwise. Without
+// this, a "leave" press while a breakout is open would also leave the main
+// meeting, and a stale handler could outlive its App.
+const handlersByInstance = new Map();
+
+const dispatchNotificationAction = async (pressActionId) => {
+  const activeInstance = getActiveInstanceOrNull();
+  const handlers = activeInstance && handlersByInstance.get(activeInstance.id)?.current;
+
+  if (!handlers) return;
+
+  if (pressActionId === 'leave') {
+    await handlers.leave();
+  } else if (pressActionId === 'mute' || pressActionId === 'unmute') {
+    await handlers.toggleMute();
+  }
+};
+
+const isOurActionPress = ({ type, detail }) => (
+  detail?.notification?.android?.channelId === CHANNEL_ID
+  && type === EventType.ACTION_PRESS
+);
+
+// Background event = device locked || app not in view || killed/quit
+notifee.onBackgroundEvent(async (event) => {
+  if (!isOurActionPress(event)) return;
+  await dispatchNotificationAction(event.detail.pressAction?.id);
+});
+
+// Foreground event = device unlocked || app in view
+notifee.onForegroundEvent((event) => {
+  if (!isOurActionPress(event)) return;
+  dispatchNotificationAction(event.detail.pressAction?.id);
+});
 
 // Foreground service task runner/notification: keeps audio/mic working on
 // Android when the app is backgrounded or the screen is off. The promise
@@ -54,6 +96,7 @@ const getServiceTypes = async (isListenOnly) => {
 
 const NotifeeController = () => {
   const dispatch = useDispatch();
+  const instance = useAppInstance();
   const audioIsConnected = useSelector((state) => state.audio.isConnected);
   const audioIsMuted = useSelector((state) => state.audio.isMuted);
   const isListenOnly = useSelector((state) => state.audio.isListenOnly);
@@ -94,8 +137,7 @@ const NotifeeController = () => {
     }
   }, [dispatchLeaveSession]);
 
-  // notifee's onBackgroundEvent handler is global and cannot be unregistered,
-  // so route events through a ref holding the latest callbacks
+  // The module-level dispatcher reads the latest callbacks through this ref
   const handlersRef = useRef({ toggleMute, leave });
   handlersRef.current = { toggleMute, leave };
 
@@ -185,39 +227,20 @@ const NotifeeController = () => {
     // POST_NOTIFICATIONS runtime prompt (Android 13+)
     notifee.requestPermission();
 
-    // Background event = device locked || app not in view || killed/quit
-    notifee.onBackgroundEvent(async ({ type, detail }) => {
-      if (detail.notification?.android?.channelId !== CHANNEL_ID) return;
-      if (type !== EventType.ACTION_PRESS) return;
-
-      if (detail.pressAction.id === 'leave') {
-        await handlersRef.current.leave();
-      } else if (detail.pressAction.id === 'mute' || detail.pressAction.id === 'unmute') {
-        await handlersRef.current.toggleMute();
-      }
-    });
-
-    // Foreground event = device unlocked || app in view
-    const unsubscribeForegroundEvents = notifee.onForegroundEvent(({ type, detail }) => {
-      if (detail.notification?.android?.channelId !== CHANNEL_ID) return;
-      if (type !== EventType.ACTION_PRESS) return;
-
-      if (detail.pressAction.id === 'leave') {
-        handlersRef.current.leave();
-      } else if (detail.pressAction.id === 'mute' || detail.pressAction.id === 'unmute') {
-        handlersRef.current.toggleMute();
-      }
-    });
+    handlersByInstance.set(instance.id, handlersRef);
 
     return () => {
-      unsubscribeForegroundEvents();
+      handlersByInstance.delete(instance.id);
 
+      // Two controllers are sequential by construction (the main room exits
+      // audio before a breakout joins, and re-displays the notification when
+      // its audio reconnects after the breakout unmounts).
       if (Platform.OS === 'android') {
         notifee.stopForegroundService();
         notifee.cancelNotification(NOTIFICATION_ID);
       }
     };
-  }, []);
+  }, [instance]);
 
   return null;
 };
