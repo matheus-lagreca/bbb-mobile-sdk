@@ -6,10 +6,10 @@ import { useDispatch, useSelector, useStore } from 'react-redux';
 import { Alert } from 'react-native';
 import { useMutation, useSubscription } from '@apollo/client';
 import { useTranslation } from 'react-i18next';
-import { useAudioJoin, invalidateInFlightAudioJoin } from '../../../hooks/use-audio-join';
+import { useAudioJoin } from '../../../hooks/use-audio-join';
 import useCurrentUser from '../../../graphql/hooks/useCurrentUser';
 import useMeeting from '../../../graphql/hooks/useMeeting';
-import AudioManager from '../../../services/webrtc/audio-manager';
+import { useMediaManagers } from '../../../app-instance/context';
 import {
   setAudioError,
   setAudioIntent,
@@ -28,7 +28,9 @@ const AudioControls = () => {
   const [audioPermissionTainted, setAudioPermissionTainted] = useState(false);
   const dispatch = useDispatch();
   const { t } = useTranslation();
-  const { joinAudio } = useAudioJoin();
+  const { joinAudio, invalidateInFlightAudioJoin } = useAudioJoin();
+  // This App instance's audio manager (see src/app-instance)
+  const { audioManager: AudioManager } = useMediaManagers();
   const { data: currentUserData } = useCurrentUser();
   const { data: meetingData } = useMeeting();
   const isConnected = useSelector((state) => state.audio.isConnected);

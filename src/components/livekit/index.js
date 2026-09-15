@@ -10,20 +10,13 @@ import {
 import {
   ConnectionState,
 } from 'livekit-client';
-import AudioManager from '../../services/webrtc/audio-manager';
-import VideoManager from '../../services/webrtc/video-manager';
-import ScreenshareManager from '../../services/webrtc/screenshare-manager';
 import logger from '../../services/logger';
 import useMeeting from '../../graphql/hooks/useMeeting';
 import { useAudioJoin } from '../../hooks/use-audio-join';
 import useCurrentUser from '../../graphql/hooks/useCurrentUser';
 import { usePrimaryLiveKitMembership } from '../../graphql/hooks/useLiveKitMemberships';
-import {
-  liveKitRoom,
-  disconnectLiveKitRoom,
-  liveKitEvents,
-  LK_FATAL_ERROR_EVENT,
-} from '../../services/livekit';
+import { LK_FATAL_ERROR_EVENT } from '../../services/livekit';
+import { useAppInstance } from '../../app-instance/context';
 import { setIsConnected, setIsConnecting, setIsReconnecting } from '../../store/redux/slices/wide-app/audio';
 import { showNotificationWithTimeout } from '../../store/redux/slices/wide-app/notification-bar';
 import { USER_SET_TALKING } from './mutations';
@@ -41,6 +34,7 @@ const FATAL_RECONNECT_STABLE_MS = 30000;
 const LiveKitObserver = ({
   room,
   usingAudio,
+  audioManager,
 }) => {
   const { localParticipant } = useLocalParticipant();
   const [setUserTalking] = useMutation(USER_SET_TALKING);
@@ -78,14 +72,25 @@ const LiveKitObserver = ({
       && connectionState === ConnectionState.Connected
       && joinedVoice
       && audioManagerInitialized) {
-      AudioManager.onAudioJoin();
+      audioManager.onAudioJoin();
     }
-  }, [isConnected, connectionState, joinedVoice, audioManagerInitialized]);
+  }, [isConnected, connectionState, joinedVoice, audioManagerInitialized, audioManager]);
 
   return null;
 };
 
 const BBBLiveKitRoom = ({ children }) => {
+  // Everything media-related is owned by this App instance (see
+  // src/app-instance): a nested breakout App has its own room, event emitter
+  // and managers, so nothing here can collide with the main room's.
+  const instance = useAppInstance();
+  const {
+    liveKitRoom,
+    liveKitEvents,
+    audioManager: AudioManager,
+    videoManager: VideoManager,
+    screenshareManager: ScreenshareManager,
+  } = instance;
   const { data: currentUserData } = useCurrentUser();
   const host = useSelector((state) => state.client.meetingData.host);
   const directHost = useSelector((state) => state.client.meetingData.directHost);
@@ -287,7 +292,7 @@ const BBBLiveKitRoom = ({ children }) => {
     return () => {
       liveKitEvents.off(LK_FATAL_ERROR_EVENT, handleFatalError);
     };
-  }, [reconnectOnFatalFailures, dispatch]);
+  }, [reconnectOnFatalFailures, dispatch, liveKitEvents]);
 
   useEffect(() => {
     return () => {
@@ -297,7 +302,7 @@ const BBBLiveKitRoom = ({ children }) => {
 
   useEffect(() => {
     return () => {
-      disconnectLiveKitRoom({ final: true });
+      instance.disconnectLiveKit({ final: true });
     };
   }, []);
 
@@ -314,7 +319,11 @@ const BBBLiveKitRoom = ({ children }) => {
       room={liveKitRoom}
       style={{ zIndex: 0, height: 'initial', width: 'initial' }}
     >
-      <LiveKitObserver room={liveKitRoom} usingAudio={usingAudio} />
+      <LiveKitObserver
+        room={liveKitRoom}
+        usingAudio={usingAudio}
+        audioManager={AudioManager}
+      />
       {usingAudio && selectiveSubscriptionEnabled && <SelectiveSubscription />}
       {children}
     </LiveKitRoom>

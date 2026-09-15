@@ -1,7 +1,6 @@
 import { mediaDevices } from '@livekit/react-native-webrtc';
 import AudioBroker from './audio-broker';
 import LiveKitAudioBridge from './livekit-audio-bridge';
-import fetchIceServers from './fetch-ice-servers';
 import {
   setAudioManagerInitialized,
   setIsConnecting,
@@ -13,16 +12,34 @@ import {
   setMutedState
 } from '../../store/redux/slices/wide-app/audio';
 
-let store;
-
-export const injectStore = (_store) => {
-  store = _store;
-};
-
+// One AudioManager per AppInstance (see src/app-instance). The instance is
+// injected by constructor and gives access to that App's Redux store, LiveKit
+// room/events, meeting settings and ICE server cache. Nothing here is shared
+// between the main room and a nested breakout room.
 class AudioManager {
-  static reconnectCondition() {
+  constructor(instance) {
+    this.instance = instance;
+    this.initialized = false;
+    this.inputStream = null;
+    this.bridge = null;
+    this.audioSessionNumber = 0;
+    this.iceServers = null;
+    this.isListenOnly = false;
+    this._livekitBridge = null;
+    // Tracks a bridge's in-flight stop() so a new bridge is never started
+    // while the previous one is still tearing down (see _joinAudio/exitAudio).
+    this._pendingStop = null;
+  }
+
+  get store() {
+    return this.instance.store;
+  }
+
+  // Passed to the SFU broker as `() => this.reconnectCondition()`: the broker
+  // .bind()s whatever it receives to itself, so never hand it the bare method.
+  reconnectCondition() {
     try {
-      const currentState = store.getState();
+      const currentState = this.store.getState();
       if (!currentState) return false;
       const { client } = currentState;
       return client.sessionState.connected
@@ -40,19 +57,6 @@ class AudioManager {
     }
   }
 
-  constructor() {
-    this.initialized = false;
-    this.inputStream = null;
-    this.bridge = null;
-    this.audioSessionNumber = 0;
-    this.iceServers = null;
-    this.isListenOnly = false;
-    this._livekitBridge = null;
-    // Tracks a bridge's in-flight stop() so a new bridge is never started
-    // while the previous one is still tearing down (see _joinAudio/exitAudio).
-    this._pendingStop = null;
-  }
-
   get bridge() {
     return this._bridge;
   }
@@ -64,7 +68,7 @@ class AudioManager {
   set inputStream(stream) {
     if (stream?.id !== this.inputStream?.id) {
       this._inputStream = stream;
-      store.dispatch(setInputStreamId(stream?.id));
+      this.store.dispatch(setInputStreamId(stream?.id));
     }
   }
 
@@ -122,7 +126,7 @@ class AudioManager {
 
     if (this.bridge) {
       this.bridge.setSenderTrackEnabled(shouldEnable);
-      store.dispatch(setMutedState(!shouldEnable));
+      this.store.dispatch(setMutedState(!shouldEnable));
     }
   }
 
@@ -171,7 +175,7 @@ class AudioManager {
     };
 
     bridge.onmutestatechanged = (muted) => {
-      store.dispatch(setMutedState(muted));
+      this.store.dispatch(setMutedState(muted));
     };
   }
 
@@ -197,6 +201,9 @@ class AudioManager {
           userId: this.userId,
           logger: this.logger,
           clientSessionNumber: this.audioSessionNumber,
+          liveKitRoom: this.instance.liveKitRoom,
+          liveKitEvents: this.instance.liveKitEvents,
+          getMeetingSettings: this.instance.getMeetingSettings,
         });
         this._attachProgressListeners(this._livekitBridge);
         return this._livekitBridge;
@@ -211,7 +218,7 @@ class AudioManager {
           traceLogs: true,
           muted,
           logger: this.logger,
-          reconnectCondition: AudioManager.reconnectCondition,
+          reconnectCondition: () => this.reconnectCondition(),
           transparentListenOnly,
         };
 
@@ -248,9 +255,9 @@ class AudioManager {
     if (this.initialized && this.iceServers) return;
 
     this.initialized = true;
-    store.dispatch(setAudioManagerInitialized(true));
+    this.store.dispatch(setAudioManagerInitialized(true));
     try {
-      this.iceServers = await fetchIceServers(this._getStunFetchURL());
+      this.iceServers = await this.instance.iceServerCache.fetch(this._getStunFetchURL());
     } catch (error) {
       this.logger.error({
         logCode: 'sfuaudio_stun-turn_fetch_failed',
@@ -265,10 +272,10 @@ class AudioManager {
 
   onAudioJoining() {
     this.bumpSessionNumber();
-    store.dispatch(setIsConnecting(true));
-    store.dispatch(setIsConnected(false));
-    store.dispatch(setIsHangingUp(false));
-    store.dispatch(setIsListenOnly(this.isListenOnly));
+    this.store.dispatch(setIsConnecting(true));
+    this.store.dispatch(setIsConnected(false));
+    this.store.dispatch(setIsHangingUp(false));
+    this.store.dispatch(setIsListenOnly(this.isListenOnly));
   }
 
   // Connected, but needs acknowledgement from call states to be flagged as joined
@@ -284,9 +291,9 @@ class AudioManager {
     }, `Audio connected (${clientSessionNumber})`);
 
     // REMOVE THIS and use onAudioJoin when voice-call-states is ported from 3.0
-    store.dispatch(setIsConnected(true));
-    store.dispatch(setIsConnecting(false));
-    store.dispatch(setIsReconnecting(false));
+    this.store.dispatch(setIsConnected(true));
+    this.store.dispatch(setIsConnecting(false));
+    this.store.dispatch(setIsReconnecting(false));
     this.logger.info({
       logCode: 'audio_joined',
       extraInfo: {
@@ -314,9 +321,9 @@ class AudioManager {
     const accepted = !!this.bridge && clientSessionNumber == this.bridge?.clientSessionNumber;
 
     if (accepted) {
-      store.dispatch(setIsConnected(true));
-      store.dispatch(setIsConnecting(false));
-      store.dispatch(setIsReconnecting(false));
+      this.store.dispatch(setIsConnected(true));
+      this.store.dispatch(setIsConnecting(false));
+      this.store.dispatch(setIsReconnecting(false));
       this.logger.info({
         logCode: 'audio_joined',
         extraInfo: {
@@ -350,8 +357,8 @@ class AudioManager {
     }, `Audio reconnecting (${clientSessionNumber})`);
 
     if (this.bridge?.clientSessionNumber <= clientSessionNumber) {
-      store.dispatch(setIsReconnecting(true));
-      store.dispatch(setIsConnected(false));
+      this.store.dispatch(setIsReconnecting(true));
+      this.store.dispatch(setIsConnected(false));
       return this.bumpSessionNumber();
     }
 
@@ -372,10 +379,10 @@ class AudioManager {
   onAudioExit(bridge) {
     if ((bridge == null || this.bridge == null)
       || (this.bridge?.clientSessionNumber === bridge.clientSessionNumber)) {
-      store.dispatch(setIsConnected(false));
-      store.dispatch(setIsConnecting(false));
-      store.dispatch(setIsReconnecting(false));
-      store.dispatch(setIsHangingUp(false));
+      this.store.dispatch(setIsConnected(false));
+      this.store.dispatch(setIsConnecting(false));
+      this.store.dispatch(setIsReconnecting(false));
+      this.store.dispatch(setIsHangingUp(false));
       this.bridge = null;
     }
 
@@ -443,7 +450,7 @@ class AudioManager {
       return;
     }
 
-    store.dispatch(setIsHangingUp(true));
+    this.store.dispatch(setIsHangingUp(true));
     this._pendingStop = this.bridge.stop();
     this.bridge = null;
   }
@@ -471,13 +478,18 @@ class AudioManager {
     this._directHost = null;
     this._sessionToken = null;
     this.iceServers = null;
+    // Keep Redux in sync: LiveKitObserver gates onAudioJoin on this flag, so a
+    // destroyed manager must not still read as initialized.
+    this.store.dispatch(setAudioManagerInitialized(false));
   }
 
+  // Idempotent: exitAudio() with no bridge only re-asserts the disconnected
+  // flags, so calling destroy() twice (e.g. user-join-screen teardown followed
+  // by the leave callback) is harmless.
   destroy() {
     this.exitAudio();
     this.deinit();
   }
 }
 
-const audioManager = new AudioManager();
-export default audioManager;
+export default AudioManager;

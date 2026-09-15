@@ -12,9 +12,10 @@ import {
   type Room,
   type TrackPublishOptions,
 } from 'livekit-client';
-import { liveKitRoom, liveKitEvents, LK_FATAL_ERROR_EVENT } from '../livekit';
+import type { EventEmitter2 } from 'eventemitter2';
+import { LK_FATAL_ERROR_EVENT } from '../livekit';
 import MediaStreamUtils from './media-stream-utils';
-import { getMeetingSettings } from '../../graphql/local-states/useMeetingSettings';
+import type MeetingClientSettings from '../../types/meetingClientSettings';
 
 const BRIDGE_NAME = 'livekit';
 const SENDRECV_ROLE = 'sendrecv';
@@ -31,6 +32,17 @@ interface SetInputStreamOptions {
   force?: boolean;
 }
 
+interface LiveKitAudioBridgeOptions {
+  userId: string;
+  logger: any;
+  clientSessionNumber: number;
+  // Per-App-instance objects (see src/app-instance): the bridge must drive the
+  // Room of the App that owns this AudioManager, never a module-level one.
+  liveKitRoom: Room;
+  liveKitEvents: EventEmitter2;
+  getMeetingSettings: () => MeetingClientSettings;
+}
+
 export default class LiveKitAudioBridge {
   public readonly bridgeName: string;
 
@@ -39,6 +51,10 @@ export default class LiveKitAudioBridge {
   public _inputDeviceId: string | null;
 
   private readonly liveKitRoom: Room;
+
+  private readonly liveKitEvents: EventEmitter2;
+
+  private readonly getMeetingSettings: () => MeetingClientSettings;
 
   private readonly role: string;
 
@@ -66,7 +82,10 @@ export default class LiveKitAudioBridge {
     userId,
     logger,
     clientSessionNumber,
-  }) {
+    liveKitRoom,
+    liveKitEvents,
+    getMeetingSettings,
+  }: LiveKitAudioBridgeOptions) {
     this.role = SENDRECV_ROLE;
     this.bridgeName = BRIDGE_NAME;
     this.logger = logger;
@@ -74,6 +93,8 @@ export default class LiveKitAudioBridge {
     this.clientSessionNumber = clientSessionNumber;
     this.originalStream = null;
     this.liveKitRoom = liveKitRoom;
+    this.liveKitEvents = liveKitEvents;
+    this.getMeetingSettings = getMeetingSettings;
     this.unpublishRequest = null;
     this.isPublishPending = false;
     this.publishGeneration = 0;
@@ -204,7 +225,7 @@ export default class LiveKitAudioBridge {
     }, 'LiveKit: fatal audio publish error detected, triggering reconnection');
 
     // Handled in components/livekit/index.js (BBBLiveKitRoom)
-    liveKitEvents.emit(LK_FATAL_ERROR_EVENT, { error, source: 'audio' });
+    this.liveKitEvents.emit(LK_FATAL_ERROR_EVENT, { error, source: 'audio' });
   }
 
   private isTrackPublishedWithStream(stream: MediaStream | null): boolean {
@@ -293,7 +314,7 @@ export default class LiveKitAudioBridge {
       },
     }, `LiveKit: audio track muted - ${trackSid}`);
 
-    const lkAudioSettings = getMeetingSettings()?.public?.media?.livekit?.audio;
+    const lkAudioSettings = this.getMeetingSettings()?.public?.media?.livekit?.audio;
     const unpublishAfterMuteMs = lkAudioSettings?.unpublishAfterMuteMs
       ?? DEFAULT_UNPUBLISH_AFTER_MUTE_MS;
 
