@@ -3,9 +3,11 @@ import {
   useLocalParticipant,
   useTracks,
 } from '@livekit/react-native';
-import { Track } from 'livekit-client';
-import { useCallback, useEffect } from 'react';
+import { ScreenCapturePickerView } from '@livekit/react-native-webrtc';
+import { RoomEvent, Track } from 'livekit-client';
+import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { findNodeHandle, NativeModules, Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import useDebounce from '../../../../hooks/use-debounce';
 import { liveKitRoom } from '../../../../services/livekit';
@@ -35,6 +37,18 @@ const CAPTURE_PROBE_TIMEOUT = 2000;
 const CAPTURE_PROBE_INTERVAL = 250;
 const MAX_CAPTURE_ATTEMPTS = 3;
 
+// iOS follows the @livekit/react-native screenshare integration: the frames come
+// from the BBBScreenShare broadcast upload extension (ios/BBBScreenShare), which
+// connects to the socket react-native-webrtc opens when the track is created.
+// The system broadcast sheet is opened right before publishing, so the probe
+// has to cover the user picking "Start" plus iOS's 3s countdown. iOS reports
+// neither a dismissed sheet nor the user's choice: no frames within the window
+// means the broadcast was not started.
+const IS_IOS = Platform.OS === 'ios';
+const IOS_CAPTURE_PROBE_TIMEOUT = 30000;
+const CAPTURE_ATTEMPTS = IS_IOS ? 1 : MAX_CAPTURE_ATTEMPTS;
+const CAPTURE_TIMEOUT = IS_IOS ? IOS_CAPTURE_PROBE_TIMEOUT : CAPTURE_PROBE_TIMEOUT;
+
 // Set by any stop the user asks for - the hook is mounted twice (actions bar and
 // presenter view), so a ref would not reach the instance running the attempts.
 let stopRequested = false;
@@ -59,9 +73,10 @@ const isCapturing = async (publication) => {
 };
 
 const waitForCapture = async (publication) => {
-  const deadline = Date.now() + CAPTURE_PROBE_TIMEOUT;
+  const deadline = Date.now() + CAPTURE_TIMEOUT;
 
-  while (Date.now() < deadline) {
+  // A stop ends the wait early instead of holding the spinner up to the deadline.
+  while (Date.now() < deadline && !stopRequested) {
     // eslint-disable-next-line no-await-in-loop
     if (await isCapturing(publication)) return true;
     // eslint-disable-next-line no-await-in-loop
@@ -76,7 +91,7 @@ const waitForCapture = async (publication) => {
 // track publication into the meeting's screenshare record (the `stream` in the
 // screenshare subscription is the track SID), same as the web client.
 // Must run under a RoomContext.Provider (see the containers below).
-export const useLKScreenshare = ({ handleScreensharePublishError } = {}) => {
+export const useLKScreenshare = ({ handleScreensharePublishError, showPicker } = {}) => {
   const { localParticipant, isScreenShareEnabled } = useLocalParticipant();
   const tracks = useTracks([Track.Source.ScreenShare]);
   const dispatch = useDispatch();
@@ -175,9 +190,14 @@ export const useLKScreenshare = ({ handleScreensharePublishError } = {}) => {
 
       stopRequested = false;
       dispatch(setIsLocalConnecting(true));
+      // iOS: open the system broadcast sheet, then publish right away (the
+      // documented order) so the socket is listening when the extension starts.
+      if (IS_IOS) await showPicker?.();
+
       // On Android this opens the system MediaProjection consent dialog and,
       // once accepted, starts the mediaProjection foreground service bundled
-      // in @livekit/react-native-webrtc before capturing.
+      // in @livekit/react-native-webrtc before capturing. On iOS it opens the
+      // App Group socket the broadcast extension connects to.
       const enableScreenShare = () => localParticipant.setScreenShareEnabled(
         true,
         captureOptions,
@@ -190,7 +210,7 @@ export const useLKScreenshare = ({ handleScreensharePublishError } = {}) => {
       // attempts cannot overlap with a tap. Between them the capturer is kept
       // alive on purpose: that keeps the foreground service up, which is what
       // lets a later attempt win the race the first one lost.
-      for (let attempt = 1; attempt <= MAX_CAPTURE_ATTEMPTS && !stopRequested; attempt += 1) {
+      for (let attempt = 1; attempt <= CAPTURE_ATTEMPTS && !stopRequested; attempt += 1) {
         if (attempt > 1) {
           // eslint-disable-next-line no-await-in-loop
           await unpublishScreenshare({ releaseCapturer: false, requestedByUser: false });
@@ -221,10 +241,21 @@ export const useLKScreenshare = ({ handleScreensharePublishError } = {}) => {
         return;
       }
 
+      // iOS: most likely the sheet was dismissed or the broadcast never
+      // started - nothing to report to the user.
+      if (!capturing && IS_IOS) {
+        logger.info({
+          logCode: 'livekit_screenshare_broadcast_not_started',
+          extraInfo: { timeout: CAPTURE_TIMEOUT },
+        }, 'LiveKit: iOS screen broadcast did not start, dropping the share');
+        await unpublishScreenshare({ requestedByUser: false });
+        return;
+      }
+
       if (!capturing) {
         logger.error({
           logCode: 'livekit_screenshare_capture_failure',
-          extraInfo: { attempts: MAX_CAPTURE_ATTEMPTS },
+          extraInfo: { attempts: CAPTURE_ATTEMPTS },
         }, 'LiveKit: screenshare captured no frames, giving up');
         await unpublishScreenshare({ requestedByUser: false });
         dispatch(setProfile({ profile: 'screenshare_error' }));
@@ -259,6 +290,7 @@ export const useLKScreenshare = ({ handleScreensharePublishError } = {}) => {
     localParticipant,
     unpublishScreenshare,
     handleScreensharePublishError,
+    showPicker,
   ]);
 
   return {
@@ -274,12 +306,22 @@ const LKScreenshareControls = ({
   fireDisabledScreenshareAlert,
   handleScreensharePublishError,
 }) => {
+  // iOS: the ScreenCapturePickerView has to be in the view tree for the
+  // picker manager to open the system broadcast sheet from it.
+  const pickerRef = useRef(null);
+  const showPicker = useCallback(async () => {
+    const reactTag = findNodeHandle(pickerRef.current);
+
+    if (reactTag == null) throw new Error('Screen capture picker is not mounted');
+
+    await NativeModules.ScreenCapturePickerViewManager.show(reactTag);
+  }, []);
   const {
     isSharing,
     isConnecting,
     publishScreenshare,
     unpublishScreenshare,
-  } = useLKScreenshare({ handleScreensharePublishError });
+  } = useLKScreenshare({ handleScreensharePublishError, showPicker });
   const isActive = isSharing || isConnecting;
 
   // Only the presenter may share: if the role is taken away mid-share, stop.
@@ -287,10 +329,36 @@ const LKScreenshareControls = ({
     if (disabled && isSharing) unpublishScreenshare();
   }, [disabled, isSharing]);
 
+  // iOS: a broadcast stopped from the system UI closes the extension's socket,
+  // the track ends and livekit-client unpublishes it by itself - the native
+  // track still has to be released. Not on Android: its capture retries
+  // unpublish on purpose without releasing the capturer.
+  useEffect(() => {
+    if (!IS_IOS) return undefined;
+
+    const onLocalTrackUnpublished = (publication) => {
+      if (publication?.source !== Track.Source.ScreenShare) return;
+
+      publication.track?.mediaStreamTrack?.release?.();
+    };
+
+    liveKitRoom.on(RoomEvent.LocalTrackUnpublished, onLocalTrackUnpublished);
+
+    return () => {
+      liveKitRoom.off(RoomEvent.LocalTrackUnpublished, onLocalTrackUnpublished);
+    };
+  }, []);
+
   const onButtonPress = useDebounce(useCallback(() => {
-    // Inert while the capture attempts run: the spinner is showing and a tap
-    // here would race a retry into a stop.
-    if (isConnecting) return;
+    if (isConnecting) {
+      // iOS: the sheet may have been dismissed, which is not reported - let a
+      // tap cancel the wait for the broadcast.
+      if (IS_IOS) unpublishScreenshare();
+
+      // Android: inert while the capture attempts run, a tap here would race
+      // a retry into a stop.
+      return;
+    }
 
     if (disabled) {
       fireDisabledScreenshareAlert();
@@ -312,13 +380,26 @@ const LKScreenshareControls = ({
   ]), 1000);
 
   return (
-    <ControlsStyled.ScreenshareButton
-      isActive={isActive}
-      isConnecting={isConnecting}
-      disabled={disabled}
-      onPress={onButtonPress}
-    />
+    <>
+      {IS_IOS && (
+        <ScreenCapturePickerView ref={pickerRef} style={PICKER_STYLE} />
+      )}
+      <ControlsStyled.ScreenshareButton
+        isActive={isActive}
+        isConnecting={isConnecting}
+        disabled={disabled}
+        onPress={onButtonPress}
+      />
+    </>
   );
+};
+
+// Invisible: it is only the anchor the broadcast sheet is opened from.
+const PICKER_STYLE = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  opacity: 0,
 };
 
 const LKScreenshareControlsContainer = (props) => (

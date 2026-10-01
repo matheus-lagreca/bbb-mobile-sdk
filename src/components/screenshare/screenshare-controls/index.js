@@ -12,9 +12,11 @@ import LKScreenshareControls from '../../livekit/screenshare/controls';
 const isUserDenial = (error) => error?.name === 'NotAllowedError'
   || error?.message === 'NotAllowedError';
 
-// Actions-bar entry point. Screen sharing from the app is Android + LiveKit
-// only: iOS needs a broadcast extension and the SFU bridge has no publisher
-// on mobile, so the button is not rendered at all in those cases.
+// Actions-bar entry point. Screen sharing from the app is LiveKit only (the SFU
+// bridge has no publisher on mobile). Android captures through MediaProjection;
+// iOS through the BBBScreenShare broadcast upload extension (the
+// @livekit/react-native integration). A host app without that extension gets a
+// sheet with no entry to start, and the share is dropped once no frames arrive.
 const ScreenshareControlsContainer = () => {
   const { data: meetingData, loading: meetingLoading } = useMeeting();
   const { data: currentUserData } = useCurrentUser();
@@ -23,8 +25,8 @@ const ScreenshareControlsContainer = () => {
 
   const { screenShareBridge } = meetingData?.meeting[0] || {};
   const isPresenter = currentUserData?.user_current[0]?.presenter ?? false;
-  const isAndroid = Platform.OS === 'android';
-  const buttonEnabled = isAndroid && screenShareBridge === 'livekit' && !meetingLoading;
+  const isPlatformSupported = Platform.OS === 'android' || Platform.OS === 'ios';
+  const buttonEnabled = isPlatformSupported && screenShareBridge === 'livekit' && !meetingLoading;
 
   const fireDisabledScreenshareAlert = () => {
     dispatch(setProfile({ profile: 'screenshare_permission' }));
