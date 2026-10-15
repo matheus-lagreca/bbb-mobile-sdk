@@ -1,4 +1,6 @@
 PODS:
+  - BroadcastEvents (1.0.0):
+    - ExpoModulesCore
   - EXApplication (56.0.3):
     - ExpoModulesCore
   - EXConstants (56.0.27):
@@ -2467,6 +2469,7 @@ PODS:
   - Yoga (0.0.0)
 
 DEPENDENCIES:
+  - BroadcastEvents (from `../modules/broadcast-events/ios`)
   - EXApplication (from `../node_modules/expo-application/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - Expo (from `../node_modules/expo`)
@@ -2587,6 +2590,8 @@ SPEC REPOS:
     - WebRTC-SDK
 
 EXTERNAL SOURCES:
+  BroadcastEvents:
+    :path: "../modules/broadcast-events/ios"
   EXApplication:
     :path: "../node_modules/expo-application/ios"
   EXConstants:
@@ -2814,6 +2819,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
+  BroadcastEvents: d3c931ff6db54ada1c43b55a0f19df2ad79ec7aa
   EXApplication: e6040c92edc5522accd62852342e6b14742d42c0
   EXConstants: 9d3531b15141ea2e24f4b48d51050291f83ccce7
   Expo: 668a9b2aa9e6bfc2586f2a0e42d1705e4cfc6f1d

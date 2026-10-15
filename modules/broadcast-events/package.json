@@ -1,0 +1,7 @@
+{
+  "name": "broadcast-events",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Forwards the iOS screen broadcast extension start/stop notifications to JS",
+  "main": "index.js"
+}
