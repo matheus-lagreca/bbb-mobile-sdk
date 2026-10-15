@@ -67,6 +67,27 @@ if it results in a error with gradle:
 iOS:
     $ npx expo run:ios
 
+## iOS screen sharing
+
+Screen sharing on iOS (LiveKit meetings only) runs in a Broadcast Upload
+Extension, `ios/BBBScreenShare`, embedded in the app. The extension and the
+app talk over a socket in a shared App Group. Physical devices only: the
+simulator cannot capture the screen.
+
+Signing needs:
+- the App Group `group.org.bbb.mobilesdk`, enabled for both
+  `org.bbb.mobilesdk` and `org.bbb.mobilesdk.BBBScreenShare` in the Apple
+  Developer account;
+- a signing team picked for both the `bbbmobile` and `BBBScreenShare` targets.
+
+This follows the [LiveKit React Native iOS screenshare
+integration](https://github.com/livekit/client-sdk-react-native#ios-2). Host
+apps embedding the SDK need their own copy of the `ios/BBBScreenShare`
+extension target, plus these keys in the app's `Info.plist`:
+`RTCAppGroupIdentifier` (their App Group) and `RTCScreenSharingExtension`
+(their extension bundle id). The extension's `Info.plist` needs the same
+`RTCAppGroupIdentifier`.
+
 ## License
 
 bbb-mobile-sdk is released under the [MIT License](https://github.com/mconf/bbb-mobile-sdk/blob/dev/LICENSE.md).

@@ -23,12 +23,25 @@ re-applied afterwards (diff against git):
   share foreground notification; screenshare crashes without it).
 - iOS: `RCTAudioModule`/`JitsiAudioSession*` files in `ios/` **and** their
   entries in `project.pbxproj` (`NativeModules.AudioModule`), the Podfile
-  `post_install` hooks (pod deployment-target bump, `fmt` consteval patch), and
-  `bbbmobile/PrivacyInfo.xcprivacy`.
+  `post_install` hooks (pod deployment-target bump, `fmt` consteval patch),
+  `bbbmobile/PrivacyInfo.xcprivacy`, and the `BBBScreenShare` broadcast upload
+  extension target (screen sharing): `ios/BBBScreenShare/` plus its
+  `project.pbxproj` target/embed/dependency entries. Its App Group entitlement
+  and `RTC*` Info.plist keys come back from `app.json`.
 - iOS (Xcode 27 only): the `SceneDelegate` + window-creation change in
   `AppDelegate.swift` (the UIScene manifest itself comes from `app.json`). Apps
   built with the iOS 27 SDK crash at launch without it; SDK 56's template has no
   scene support (expo/expo#46663, native support from SDK 57).
+
+iOS screen sharing also relies on two non-prebuild pieces:
+- `modules/broadcast-events/`: local Expo module (autolinked from `modules/`)
+  that forwards the extension's `iOS_BroadcastStarted`/`Stopped` Darwin
+  notifications to JS, so the share is published only after the user taps
+  "Start". Host apps must add `node_modules/bbb-mobile-sdk/modules` to
+  `expo.autolinking.searchPaths`. See its README.
+- `patches/`: patch-package fix for a `@livekit/react-native-webrtc` deadlock
+  when the broadcast sheet is dismissed (applied by `scripts/apply-patches.js`
+  on `postinstall`; host apps need the same patch). See `patches/README.md`.
 
 ## Commands
 
