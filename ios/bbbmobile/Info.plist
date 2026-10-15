@@ -55,6 +55,10 @@
 	<string>$(RCT_METRO_PORT)</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
+	<key>RTCAppGroupIdentifier</key>
+	<string>group.org.bbb.mobilesdk</string>
+	<key>RTCScreenSharingExtension</key>
+	<string>org.bbb.mobilesdk.BBBScreenShare</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

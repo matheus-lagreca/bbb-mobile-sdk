@@ -24,7 +24,14 @@
       "bitcode": false,
       "bundleIdentifier": "org.bbb.mobilesdk",
       "appleTeamId": "GN7LTX8MS8",
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.org.bbb.mobilesdk"
+        ]
+      },
       "infoPlist": {
+        "RTCAppGroupIdentifier": "group.org.bbb.mobilesdk",
+        "RTCScreenSharingExtension": "org.bbb.mobilesdk.BBBScreenShare",
         "UIBackgroundModes": [
           "audio",
           "fetch",
