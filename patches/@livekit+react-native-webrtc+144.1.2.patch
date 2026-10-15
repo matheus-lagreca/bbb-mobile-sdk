@@ -1,0 +1,29 @@
+diff --git a/node_modules/@livekit/react-native-webrtc/ios/RCTWebRTC/SocketConnection.m b/node_modules/@livekit/react-native-webrtc/ios/RCTWebRTC/SocketConnection.m
+index 805986d..21d9505 100644
+--- a/node_modules/@livekit/react-native-webrtc/ios/RCTWebRTC/SocketConnection.m
++++ b/node_modules/@livekit/react-native-webrtc/ios/RCTWebRTC/SocketConnection.m
+@@ -75,7 +75,12 @@ - (void)openWithStreamDelegate:(id<NSStreamDelegate>)streamDelegate {
+ }
+ 
+ - (void)close {
+-    [self performSelector:@selector(unscheduleStreams) onThread:self.networkThread withObject:nil waitUntilDone:true];
++    // The network thread only starts once the broadcast extension connects. If
++    // it never did (e.g. the broadcast sheet was dismissed), waiting on it would
++    // block the calling queue forever.
++    if (self.networkThread.isExecuting) {
++        [self performSelector:@selector(unscheduleStreams) onThread:self.networkThread withObject:nil waitUntilDone:true];
++    }
+ 
+     self.inputStream.delegate = nil;
+     self.outputStream.delegate = nil;
+@@ -85,7 +90,9 @@ - (void)close {
+ 
+     [self.networkThread cancel];
+ 
+-    dispatch_source_cancel(self.listeningSource);
++    if (self.listeningSource) {
++        dispatch_source_cancel(self.listeningSource);
++    }
+     close(self.serverSocket);
+ }
+ 
