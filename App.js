@@ -12,6 +12,7 @@ import LocalesController from './src/app-content/locales';
 import AppStatusBar from './src/components/status-bar';
 import NavigatorHandler from './src/screens/navigator-handler';
 import { disconnectLiveKitRoom } from './src/services/livekit';
+import { setupIOSAudioSession } from './src/services/livekit/ios-audio-session';
 // inject stores
 import { injectStore as injectStoreVM } from './src/services/webrtc/video-manager';
 import { injectStore as injectStoreSM } from './src/services/webrtc/screenshare-manager';
@@ -59,6 +60,8 @@ const App = (props) => {
   useEffect(() => {
     injectStore();
   }, []);
+
+  useEffect(() => setupIOSAudioSession(), []);
 
   if (!fontsLoaded && !fontsError) return null;
 
