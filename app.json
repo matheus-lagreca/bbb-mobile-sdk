@@ -23,7 +23,6 @@
       "supportsTablet": true,
       "bitcode": false,
       "bundleIdentifier": "org.bbb.mobilesdk",
-      "appleTeamId": "GN7LTX8MS8",
       "infoPlist": {
         "UIBackgroundModes": [
           "audio",

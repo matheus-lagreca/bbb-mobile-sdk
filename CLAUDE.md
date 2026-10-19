@@ -14,7 +14,9 @@ imports `App` and mounts it itself, passing `joinURL`, `defaultLanguage`, and
 
 Expo **bare workflow** (SDK 56, RN 0.85, React 19.2, Hermes v1): `android/` and
 `ios/` are committed. Most native config lives in `app.json` (schemes, background
-modes, team ID, notify-kit foreground service, splash, JitPack repo), but
+modes, notify-kit foreground service, splash, JitPack repo; no Apple team is
+set on purpose — the host app signs the SDK, so for standalone device runs
+pick your own team/bundle ID in Xcode and don't commit it), but
 `expo prebuild --clean` still wipes these hand-maintained bits, which must be
 re-applied afterwards (diff against git):
 - Android: `LiveKitReactNative.setup(...)` in `MainApplication.onCreate`, the four
